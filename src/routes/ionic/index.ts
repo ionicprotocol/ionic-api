@@ -1,68 +1,19 @@
-import dotenv from 'dotenv';
-import { createClient } from '@supabase/supabase-js';
-dotenv.config();
-
 import { Router } from 'express';
 import { 
   createPublicClient, 
   http, 
   parseEther,
   encodeFunctionData,
-  Address,
-  hexToString,
-  createWalletClient,
-  custom,
-  PublicClient,
-  // privateKeyToAccount
+  Address
 } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
 import { getChainConfig } from '../../utils/chains';
 import { IonicPoolABI } from '../../abis/IonicPool';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const router = Router();
-
-const MAIN_POOL_ADDRESSES = {
-  'mode': '0xfb3323e24743caf4add0fdccfb268565c0685556',
-  'base': '0x05c9C6417F246600f8f5f49fcA9Ee991bfF73D13', 
-  'optimism': '0xaFB4A254D125B0395610fdc8f1D022936c7b166B'
-} as const;
-
-type AssetType = keyof typeof MAIN_POOL_ADDRESSES;
-
-// Add this type for the API response
-type PoolAddressResponse = {
-  underlying_address: string;
-  // add other fields if needed
-}
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_API_URL || '',
-  process.env.SUPABASE_API_KEY || ''
-);
-
-// Modify getAssetPoolAddress to use supabase client
-async function getAssetPoolAddress(
-  chain: keyof typeof MAIN_POOL_ADDRESSES,
-  asset: string,
-): Promise<string> {
-  try {
-    const { data, error } = await supabase
-      .from('asset_master_data')
-      .select('ctoken_address')
-      .eq('chain_id', getChainId(chain))
-      .eq('underlying_symbol', asset);
-
-    if (error) throw error;
-    if (!data || data.length === 0) throw new Error('Pool not found');
-    
-    console.log("New data", data[0].ctoken_address);
-    return data[0].ctoken_address;
-  } catch (error) {
-    console.error('Error fetching pool address:', error);
-    throw error;
-  }
-}
 
 type SupportedChain = "optimism" | "base" | "mode";
 
@@ -82,7 +33,42 @@ const serializeBigInts = (obj: any): any => {
   return obj;
 };
 
-// Add helper function to get chain ID
+// Initialize Supabase client
+if (!process.env.SUPABASE_API_URL) {
+  throw new Error('SUPABASE_API_URL environment variable is required');
+}
+if (!process.env.SUPABASE_API_KEY) {
+  throw new Error('SUPABASE_API_KEY environment variable is required'); 
+}
+
+const supabase = createClient(
+  process.env.SUPABASE_API_URL,
+  process.env.SUPABASE_API_KEY
+);
+
+// Add helper function to get pool address
+async function getAssetPoolAddress(
+  chain: SupportedChain,
+  asset: string,
+): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from('asset_master_data')
+      .select('ctoken_address')
+      .eq('chain_id', getChainId(chain))
+      .eq('underlying_symbol', asset);
+
+    if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Pool not found');
+    console.log(data[0].ctoken_address);
+    return data[0].ctoken_address;
+  } catch (error) {
+    console.error('Error fetching pool address:', error);
+    throw error;
+  }
+}
+
+// Add chain ID helper
 function getChainId(chain: string): number {
   switch (chain.toLowerCase()) {
     case 'mode':
@@ -120,11 +106,13 @@ function getChainId(chain: string): number {
 router.post('/beta/v0/ionic/supply/:chain', async (req, res) => {
   try {
     const { chain } = req.params;
-    const chainId = getChainId(chain);
     const { account, amount, asset } = req.body;
 
     if (!asset) {
-      throw new Error('Asset type is required');
+      return res.status(400).json({ 
+        success: false, 
+        error: "Missing 'asset' parameter" 
+      });
     }
 
     const chainConfig = getChainConfig(chain as SupportedChain);
@@ -133,137 +121,32 @@ router.post('/beta/v0/ionic/supply/:chain', async (req, res) => {
       transport: http()
     });
 
-    // Get the pool address
     const poolAddress = await getAssetPoolAddress(
       chain as SupportedChain,
       asset
     );
-    console.log("Pool address", poolAddress);
 
-    // First, we need to get the underlying token address
-    const { data: assetData, error: assetError } = await supabase
-      .from('asset_master_data')
-      .select('underlying_address')
-      .eq('chain_id', getChainId(chain))
-      .eq('underlying_symbol', asset);
-
-    if (assetError) throw assetError;
-    if (!assetData || assetData.length === 0) throw new Error('Asset not found');
-    
-    const underlyingAddress = assetData[0].underlying_address;
-    console.log("Underlying address", underlyingAddress);
-
-    // Generate approval transaction data
-    const approvalData = encodeFunctionData({
-      abi: [{
-        name: 'approve',
-        type: 'function',
-        inputs: [
-          { name: 'spender', type: 'address' },
-          { name: 'amount', type: 'uint256' }
-        ],
-        outputs: [{ type: 'bool' }],
-        stateMutability: 'nonpayable'
-      }],
-      functionName: 'approve',
-      args: [poolAddress as Address, parseEther(amount)]
-    });
-
-    // Prepare approval transaction
-    const approvalTx = await publicClient.prepareTransactionRequest({
-      account: account as Address,
-      to: underlyingAddress as Address,
-      data: approvalData,
-    });
-
-    // Send approval transaction
-    if (!process.env.PRIVATE_KEY) {
-      throw new Error('PRIVATE_KEY environment variable is not set');
-    }
-    const walletAccount = privateKeyToAccount(('0x' + process.env.PRIVATE_KEY) as `0x${string}`);
-    const walletClient = createWalletClient({
-      account: walletAccount,
-      chain: chainConfig,
-      transport: http()
-    });
-
-    const approvalHash = await walletClient.sendTransaction({
-      ...approvalTx,
-      account: walletAccount
-    } as any);
-
-    // Wait for approval to be mined
-    await publicClient.waitForTransactionReceipt({ hash: approvalHash });
-
-    // Add this before the supply transaction
-    const balance = await publicClient.readContract({
-      address: underlyingAddress as Address,
-      abi: [{
-        name: 'balanceOf',
-        type: 'function',
-        inputs: [{ name: 'account', type: 'address' }],
-        outputs: [{ type: 'uint256' }],
-        stateMutability: 'view'
-      }],
-      functionName: 'balanceOf',
-      args: [account as Address]
-    });
-
-    const allowance = await publicClient.readContract({
-      address: underlyingAddress as Address,
-      abi: [{
-        name: 'allowance',
-        type: 'function',
-        inputs: [
-          { name: 'owner', type: 'address' },
-          { name: 'spender', type: 'address' }
-        ],
-        outputs: [{ type: 'uint256' }],
-        stateMutability: 'view'
-      }],
-      functionName: 'allowance',
-      args: [account as Address, poolAddress as Address]
-    });
-
-    console.log("Balance:", balance.toString());
-    console.log("Allowance:", allowance.toString());
-    console.log("Amount to supply:", parseEther(amount).toString());
-
-    if (balance < parseEther(amount)) {
-      throw new Error('Insufficient balance');
-    }
-
-    if (allowance < parseEther(amount)) {
-      throw new Error('Insufficient allowance');
-    }
-
-    // Now proceed with the supply transaction
-    const supplyData = encodeFunctionData({
+    const data = encodeFunctionData({
       abi: IonicPoolABI,
       functionName: 'mint',
-      args: [parseEther(amount)]
+      args: [parseEther(amount)] as const
     });
 
-    const supplyTx = await publicClient.prepareTransactionRequest({
-      account: account as Address,
-      data: supplyData,
-      to: poolAddress as Address
-    });
-
-    const transactionHash = await walletClient.sendTransaction({
-      ...supplyTx,
-      account: walletAccount
-    } as any);
-
+    // Return just the transaction request data
     return res.json({
       success: true,
-      approvalHash,
-      transactionHash,
-      transaction: serializeBigInts(supplyTx)
+      transactionRequest: {
+        to: poolAddress,
+        data,
+        from: account,
+      }
     });
   } catch (error: any) {
     console.error('Supply error:', error);
-    return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 });
 
@@ -271,14 +154,12 @@ router.post('/beta/v0/ionic/supply/:chain', async (req, res) => {
 router.post('/beta/v0/ionic/withdraw/:chain', async (req, res) => {
   try {
     const { chain } = req.params;
-    const chainId = getChainId(chain);
-    const { account, amount, to } = req.body;
+    const { account, amount, asset } = req.body;
 
-    const chainConfig = getChainConfig(chain as SupportedChain);
-    const publicClient = createPublicClient({
-      chain: chainConfig,
-      transport: http()
-    });
+    const poolAddress = await getAssetPoolAddress(
+      chain as SupportedChain,
+      asset
+    );
 
     const data = encodeFunctionData({
       abi: IonicPoolABI,
@@ -286,31 +167,13 @@ router.post('/beta/v0/ionic/withdraw/:chain', async (req, res) => {
       args: [parseEther(amount)]
     });
 
-    const tx = await publicClient.prepareTransactionRequest({
-      account: account as Address,
-      data,
-      to: to as Address
-    });
-
-    if (!process.env.PRIVATE_KEY) {
-      throw new Error('PRIVATE_KEY environment variable is not set');
-    }
-    const walletAccount = privateKeyToAccount(('0x' + process.env.PRIVATE_KEY) as `0x${string}`)
-    const walletClient = createWalletClient({
-      account: walletAccount,
-      chain: chainConfig,
-      transport: http()
-    });
-
-    const hash = await walletClient.sendTransaction({
-      ...tx,
-      account: walletAccount
-    } as any);
-
     return res.json({
       success: true,
-      transaction: serializeBigInts(tx),
-      transactionHash: hash
+      transactionRequest: {
+        to: poolAddress,
+        data,
+        from: account,
+      }
     });
   } catch (error: any) {
     console.error('Withdraw error:', error);
@@ -322,14 +185,12 @@ router.post('/beta/v0/ionic/withdraw/:chain', async (req, res) => {
 router.post('/beta/v0/ionic/borrow/:chain', async (req, res) => {
   try {
     const { chain } = req.params;
-    const chainId = getChainId(chain);
-    const { account, amount, to } = req.body;
+    const { account, amount, asset } = req.body;
 
-    const chainConfig = getChainConfig(chain as SupportedChain);
-    const publicClient = createPublicClient({
-      chain: chainConfig,
-      transport: http()
-    });
+    const poolAddress = await getAssetPoolAddress(
+      chain as SupportedChain,
+      asset
+    );
 
     const data = encodeFunctionData({
       abi: IonicPoolABI,
@@ -337,31 +198,13 @@ router.post('/beta/v0/ionic/borrow/:chain', async (req, res) => {
       args: [parseEther(amount)]
     });
 
-    const tx = await publicClient.prepareTransactionRequest({
-      account: account as Address,
-      data,
-      to: to as Address
-    });
-
-    if (!process.env.PRIVATE_KEY) {
-      throw new Error('PRIVATE_KEY environment variable is not set');
-    }
-    const walletAccount = privateKeyToAccount(('0x' + process.env.PRIVATE_KEY) as `0x${string}`)
-    const walletClient = createWalletClient({
-      account: walletAccount,
-      chain: chainConfig,
-      transport: http()
-    });
-
-    const hash = await walletClient.sendTransaction({
-      ...tx,
-      account: walletAccount
-    } as any);
-
     return res.json({
       success: true,
-      transaction: serializeBigInts(tx),
-      transactionHash: hash
+      transactionRequest: {
+        to: poolAddress,
+        data,
+        from: account,
+      }
     });
   } catch (error: any) {
     console.error('Borrow error:', error);
@@ -373,14 +216,12 @@ router.post('/beta/v0/ionic/borrow/:chain', async (req, res) => {
 router.post('/beta/v0/ionic/repay/:chain', async (req, res) => {
   try {
     const { chain } = req.params;
-    const chainId = getChainId(chain);
-    const { account, amount, to } = req.body;
+    const { account, amount, asset } = req.body;
 
-    const chainConfig = getChainConfig(chain as SupportedChain);
-    const publicClient = createPublicClient({
-      chain: chainConfig,
-      transport: http()
-    });
+    const poolAddress = await getAssetPoolAddress(
+      chain as SupportedChain,
+      asset
+    );
 
     const data = encodeFunctionData({
       abi: IonicPoolABI,
@@ -388,31 +229,14 @@ router.post('/beta/v0/ionic/repay/:chain', async (req, res) => {
       args: [parseEther(amount)]
     });
 
-    const tx = await publicClient.prepareTransactionRequest({
-      account: account as Address,
-      data,
-      to: to as Address
-    });
-
-    if (!process.env.PRIVATE_KEY) {
-      throw new Error('PRIVATE_KEY environment variable is not set');
-    }
-    const walletAccount = privateKeyToAccount(('0x' + process.env.PRIVATE_KEY) as `0x${string}`)
-    const walletClient = createWalletClient({
-      account: walletAccount,
-      chain: chainConfig,
-      transport: http()
-    });
-
-    const hash = await walletClient.sendTransaction({
-      ...tx,
-      account: walletAccount
-    } as any);
-
     return res.json({
       success: true,
-      transaction: serializeBigInts(tx),
-      transactionHash: hash
+      transactionRequest: {
+        to: poolAddress,
+        data,
+        from: account,
+        value: chain.toLowerCase() === 'mode' ? parseEther(amount) : undefined
+      }
     });
   } catch (error: any) {
     console.error('Repay error:', error);
@@ -420,20 +244,13 @@ router.post('/beta/v0/ionic/repay/:chain', async (req, res) => {
   }
 });
 
-// Add this new endpoint
+// Pool address endpoint
 router.get('/beta/v0/ionic/pool-address/:chain/:asset', async (req, res) => {
   try {
     const { chain, asset } = req.params;
-    const chainId = getChainId(chain);
     
-    const chainConfig = getChainConfig(chain as SupportedChain);
-    const publicClient = createPublicClient({
-      chain: chainConfig,
-      transport: http()
-    });
-
     const poolAddress = await getAssetPoolAddress(
-      chain as keyof typeof MAIN_POOL_ADDRESSES,
+      chain as SupportedChain,
       asset
     );
 
@@ -447,4 +264,4 @@ router.get('/beta/v0/ionic/pool-address/:chain/:asset', async (req, res) => {
   }
 });
 
-export default router; 
+export default router;
