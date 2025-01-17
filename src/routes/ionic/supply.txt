@@ -1,0 +1,91 @@
+import { Router } from 'express';
+import { 
+  createPublicClient, 
+  http, 
+  parseEther,
+  encodeFunctionData,
+  Address
+} from 'viem';
+import { getChainConfig } from '../../utils/chains';
+import { IonicPoolABI } from '../../abis/IonicPool';
+
+const router = Router();
+
+// Custom type for supported chains
+type SupportedChain = "optimism" | "base" | "mode";
+
+// Helper function to convert BigInt values to strings recursively
+const serializeBigInts = (obj: any): any => {
+  if (typeof obj === 'bigint') {
+    return obj.toString();
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(serializeBigInts);
+  }
+  if (obj && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj).map(([key, value]) => [key, serializeBigInts(value)])
+    );
+  }
+  return obj;
+};
+
+router.post('/beta/v0/ionic/supply/:chain', async (req, res) => {
+  try {
+    const { chain } = req.params;
+    const { 
+      account,     // User's address
+      amount,      // Amount to supply
+      to          // Pool address
+    } = req.body;
+
+    // Type assertion for chain parameter
+    const chainConfig = getChainConfig(chain as SupportedChain);
+    
+    // Create public client
+    const publicClient = createPublicClient({
+      chain: chainConfig,
+      transport: http()
+    });
+
+    // Encode the mint function data
+    const data = encodeFunctionData({
+      abi: IonicPoolABI,
+      functionName: 'mint',
+      args: [parseEther(amount)]
+    });
+
+    // First simulate the transaction
+    const simulation = await publicClient.simulateContract({
+      account: account as Address,
+      address: to as Address,
+      abi: IonicPoolABI,
+      functionName: 'mint',
+      args: [parseEther(amount)]
+    });
+
+    // Then prepare the transaction
+    const tx = await publicClient.prepareTransactionRequest({
+      account: account as Address,
+      data,
+      to: to as Address
+    });
+
+    // Serialize and return both
+    const serializedTx = serializeBigInts(tx);
+    return res.json({
+      success: true,
+      transaction: serializedTx,
+      hash: simulation.result
+    });
+
+  } catch (error: any) {
+    console.error('Supply error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+export default router; 
