@@ -53,27 +53,61 @@ A robust and secure REST API for interacting with Ionic Protocol across multiple
    npm run dev
    ```
 
-## 📚 API Endpoints
+## 📚 API Documentation
 
-### Supply Assets
+### Swagger UI
+Access our interactive API documentation at `/api-docs` to:
+- Explore all available endpoints
+- Test API calls directly from your browser
+- View request/response schemas
+- Download OpenAPI specification
+
+### Available Endpoints
+
+<details>
+<summary><b>Supply Assets</b></summary>
+
+```http
 POST /beta/v0/ionic/supply/:chain
+```
 Supply assets to an Ionic pool.
+</details>
 
-### Withdraw Assets
+<details>
+<summary><b>Withdraw Assets</b></summary>
+
+```http
 POST /beta/v0/ionic/withdraw/:chain
+```
 Withdraw your supplied assets.
+</details>
 
-### Borrow Assets
+<details>
+<summary><b>Borrow Assets</b></summary>
+
+```http
 POST /beta/v0/ionic/borrow/:chain
+```
 Borrow assets from a pool.
+</details>
 
-### Repay Loan
+<details>
+<summary><b>Repay Loan</b></summary>
+
+```http
 POST /beta/v0/ionic/repay/:chain
+```
 Repay your borrowed assets.
+</details>
 
-### Get Pool Address
-GET /beta/v0/ionic/pool-address/:chain/:asset
-Retrieve the pool address for a specific asset.
+<details>
+<summary><b>Get Pool Address</b></summary>
+
+```http
+GET /beta/v0/ionic/market-address/:chain/:asset
+```
+Retrieve the Market address for a specific asset.
+</details>
 
 ## 🛠️ Tech Stack
 
@@ -96,9 +130,6 @@ This API implements several security measures:
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## ⚡ Performance
 

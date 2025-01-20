@@ -10,6 +10,7 @@ import { getChainConfig } from '../../utils/chains';
 import { IonicPoolABI } from '../../abis/IonicPool';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import swaggerRouter from './swagger';
 
 dotenv.config();
 
@@ -53,7 +54,7 @@ async function getAssetPoolAddress(
 ): Promise<string> {
   try {
     const { data, error } = await supabase
-      .from('asset_master_data')
+      .from('asset_master_data_test2')
       .select('ctoken_address')
       .eq('chain_id', getChainId(chain))
       .eq('underlying_symbol', asset);
@@ -245,7 +246,7 @@ router.post('/beta/v0/ionic/repay/:chain', async (req, res) => {
 });
 
 // Pool address endpoint
-router.get('/beta/v0/ionic/pool-address/:chain/:asset', async (req, res) => {
+router.get('/beta/v0/ionic/market-address/:chain/:asset', async (req, res) => {
   try {
     const { chain, asset } = req.params;
     
@@ -264,4 +265,5 @@ router.get('/beta/v0/ionic/pool-address/:chain/:asset', async (req, res) => {
   }
 });
 
+router.use(swaggerRouter);
 export default router;
