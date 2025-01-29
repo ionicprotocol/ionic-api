@@ -1,0 +1,168 @@
+@baseUrl = http://localhost:3000
+
+### Get Morpho Position
+GET {{baseUrl}}/beta/v0/morpho/position/base/0x144bf18d6bf4c59602548a825034f73bf1d20177fc5f975fc69d5a5eba929b45/0x1155b614971f16758C92c4890eD338C9e3ede6b7
+Content-Type: application/json
+
+### Get All Morpho Markets
+GET {{baseUrl}}/beta/v0/morpho/market/base
+Content-Type: application/json
+
+### Get Morpho Market Info by Market ID
+GET {{baseUrl}}/beta/v0/morpho/market/base?marketId=0x144bf18d6bf4c59602548a825034f73bf1d20177fc5f975fc69d5a5eba929b45
+Content-Type: application/json
+
+### Get Morpho Market Info by Borrow Token Symbol
+GET {{baseUrl}}/beta/v0/morpho/market/base?borrowTokenSymbol=WETH
+Content-Type: application/json
+
+### Get Morpho Market Info by Collateral Token Symbol
+GET {{baseUrl}}/beta/v0/morpho/market/base?collateralTokenSymbol=wsuperOETHb
+Content-Type: application/json
+
+# Example Response:
+# {
+#   "markets": [
+#     {
+#       "marketId": "0x144bf18d6bf4c59602548a825034f73bf1d20177fc5f975fc69d5a5eba929b45",
+#       "collateralToken": "0x7FcD174E80f264448ebeE8c88a7C4476AAF58Ea6",
+#       "collateralTokenSymbol": "wsuperOETHb",
+#       "borrowToken": "0x4200000000000000000000000000000000000006",
+#       "borrowTokenSymbol": "WETH",
+#       "utilization": "920000000000000000",
+#       "liquidity": "23000000",
+#       "apyAtTarget": "30000000000000000",
+#       "borrowApy": "80000000000000000",
+#       "totalSupplyAssets": "1000000000000000000",
+#       "totalBorrowAssets": "500000000000000000"
+#     }
+#   ]
+# }
+
+# Available chains: optimism, base, mode, bob, fraxtal, lisk, ink, superseed, worldchain, swell, soneium
+
+### Get Ionic Market Info
+GET {{baseUrl}}/beta/v0/ionic/market-info/optimism/WETH
+Content-Type: application/json
+
+# Example Response:
+# {
+#   "address": "0x1234567890123456789012345678901234567890",
+#   "pool_address": "0x1234567890123456789012345678901234567890",
+#   "underlying_address": "0x1234567890123456789012345678901234567890",
+#   "underlying_name": "Wrapped Ether",
+#   "underlying_symbol": "WETH",
+#   "decimals": 18,
+#   "supply_apy": 2.5,
+#   "borrow_apy": 3.5,
+#   "total_supply": "1000000000000000000",
+#   "total_borrow": "500000000000000000",
+#   "utilization_rate": 50,
+#   "is_listed": true,
+#   "is_borrow_paused": false,
+#   "is_mint_paused": false
+# }
+
+### Supply to Ionic Pool
+POST {{baseUrl}}/beta/v0/ionic/supply/optimism
+Content-Type: application/json
+
+{
+  "sender": "0x1234567890123456789012345678901234567890",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 1.5,
+    "on_behalf_of": "0x1234567890123456789012345678901234567890"
+  }
+}
+
+# Example Response:
+# {
+#   "chainId": 10,
+#   "data": "0x1234...",
+#   "from": "0x1234567890123456789012345678901234567890",
+#   "to": "0x1234567890123456789012345678901234567890",
+#   "value": 0,
+#   "nonce": 42,
+#   "maxFeePerGas": 100000000000,
+#   "maxPriorityFeePerGas": 1000000000
+# }
+
+### Withdraw from Ionic Pool
+POST {{baseUrl}}/beta/v0/ionic/withdraw/optimism
+Content-Type: application/json
+
+{
+  "sender": "0x1234567890123456789012345678901234567890",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 1.0,
+    "on_behalf_of": "0x1234567890123456789012345678901234567890"
+  }
+}
+
+# Example Response:
+# {
+#   "chainId": 10,
+#   "data": "0x1234...",
+#   "from": "0x1234567890123456789012345678901234567890",
+#   "to": "0x1234567890123456789012345678901234567890",
+#   "value": 0,
+#   "nonce": 42,
+#   "maxFeePerGas": 100000000000,
+#   "maxPriorityFeePerGas": 1000000000
+# }
+
+### Borrow from Ionic Pool
+POST {{baseUrl}}/beta/v0/ionic/borrow/optimism
+Content-Type: application/json
+
+{
+  "sender": "0x1234567890123456789012345678901234567890",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 0.5,
+    "on_behalf_of": "0x1234567890123456789012345678901234567890"
+  }
+}
+
+# Example Response:
+# {
+#   "chainId": 10,
+#   "data": "0x1234...",
+#   "from": "0x1234567890123456789012345678901234567890",
+#   "to": "0x1234567890123456789012345678901234567890",
+#   "value": 0,
+#   "nonce": 42,
+#   "maxFeePerGas": 100000000000,
+#   "maxPriorityFeePerGas": 1000000000
+# }
+
+### Repay to Ionic Pool
+POST {{baseUrl}}/beta/v0/ionic/repay/optimism
+Content-Type: application/json
+
+{
+  "sender": "0x1234567890123456789012345678901234567890",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 0.5,
+    "on_behalf_of": "0x1234567890123456789012345678901234567890"
+  }
+}
+
+# Example Response:
+# {
+#   "chainId": 10,
+#   "data": "0x1234...",
+#   "from": "0x1234567890123456789012345678901234567890",
+#   "to": "0x1234567890123456789012345678901234567890",
+#   "value": 0,
+#   "nonce": 42,
+#   "maxFeePerGas": 100000000000,
+#   "maxPriorityFeePerGas": 1000000000
+# }
+
+### View API Documentation
+GET {{baseUrl}}/api-docs
+Content-Type: application/json 
