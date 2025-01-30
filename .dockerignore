@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+dist
+.git
+.gitignore
+.env
+.env.*
+README.md
+.vscode
+coverage
+test
+**/*.spec.ts
+**/*.test.ts
+.eslintrc.js
+.prettierrc
+jest.config.js 
