@@ -1,31 +1,32 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IonicService } from './ionic.service';
-import { MarketAddressResponseDto } from './dto/market.dto';
+import { MarketsResponseDto } from './dto/market.dto';
 import {
   PoolOperationRequestDto,
   PoolOperationResponseDto,
 } from './dto/pool-operations.dto';
 import { Chain } from '../common/types/chain.type';
 import { ChainValidationPipe } from '../common/pipes/chain-validation.pipe';
+import { MarketSearchQueryDto } from './dto/market-search.dto';
 
 @ApiTags('ionic')
 @Controller('beta/v0/ionic')
 export class IonicController {
   constructor(private readonly ionicService: IonicService) {}
 
-  @Get('market/:chain/:asset')
+  @Get('market/:chain')
   @ApiOperation({ summary: 'Get Ionic market information' })
   @ApiResponse({
     status: 200,
     description: 'Returns the market information',
-    type: MarketAddressResponseDto,
+    type: MarketsResponseDto,
   })
   async getMarketInfo(
     @Param('chain', ChainValidationPipe) chain: Chain,
-    @Param('asset') asset: string,
-  ): Promise<MarketAddressResponseDto> {
-    return this.ionicService.getMarketInfo(chain, asset);
+    @Query() query: MarketSearchQueryDto,
+  ): Promise<MarketsResponseDto> {
+    return this.ionicService.getMarketInfo(chain, query);
   }
 
   @Post('supply/:chain')

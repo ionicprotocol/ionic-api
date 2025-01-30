@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Chain } from '../common/types/chain.type';
 import { getChainConfig } from '../common/utils/chain.utils';
-import { MarketAddressResponseDto } from './dto/market.dto';
+import { MarketsResponseDto, MarketInfoDto } from './dto/market.dto';
 import {
   PoolOperationRequestDto,
   PoolOperationResponseDto,
@@ -16,6 +16,7 @@ import {
 import { SupabaseService } from '../common/database/supabase.service';
 import { formatDecimal } from 'src/common/utils/number.utils';
 import { IonicPoolABI } from './abi/ionicPool';
+import { MarketSearchQueryDto } from './dto/market-search.dto';
 
 @Injectable()
 export class IonicService {
@@ -23,55 +24,58 @@ export class IonicService {
 
   async getMarketInfo(
     chain: Chain,
-    asset: string,
-  ): Promise<MarketAddressResponseDto> {
+    query: MarketSearchQueryDto,
+  ): Promise<MarketsResponseDto> {
     const marketData = await this.supabaseService.getAssetMasterData(
       chain,
-      asset,
+      query,
     );
 
-    if (!marketData) {
-      throw new Error(`Market not found for ${asset} on ${chain}`);
-    }
+    const markets: MarketInfoDto[] = marketData.map((data) => ({
+      address: data.ctoken_address,
+      pool_address: data.pool_address,
+      underlying_address: data.underlying_address,
+      underlying_name: data.underlying_name,
+      underlying_symbol: data.underlying_symbol,
+      decimals: data.decimals,
+      supply_apy: data.supply_apy,
+      borrow_apy: data.borrow_apy,
+      total_supply: data.total_supply,
+      total_borrow: data.total_borrow,
+      utilization_rate: data.utilization_rate,
+      is_listed: data.is_listed,
+      is_borrow_paused: data.is_borrow_paused,
+      is_mint_paused: data.is_mint_paused,
+    }));
 
-    return {
-      address: marketData.ctoken_address,
-      pool_address: marketData.pool_address,
-      underlying_address: marketData.underlying_address,
-      underlying_name: marketData.underlying_name,
-      underlying_symbol: marketData.underlying_symbol,
-      decimals: marketData.decimals,
-      supply_apy: marketData.supply_apy,
-      borrow_apy: marketData.borrow_apy,
-      total_supply: marketData.total_supply,
-      total_borrow: marketData.total_borrow,
-      utilization_rate: marketData.utilization_rate,
-      is_listed: marketData.is_listed,
-      is_borrow_paused: marketData.is_borrow_paused,
-      is_mint_paused: marketData.is_mint_paused,
-    };
+    return { markets };
   }
 
   async supply(
     chain: Chain,
-    { call_data, sender }: PoolOperationRequestDto,
+    request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
+    const query: MarketSearchQueryDto = { asset: request.call_data.asset };
+    const marketData = await this.supabaseService.getAssetMasterData(
+      chain,
+      query,
+    );
+
+    if (!marketData.length) {
+      throw new Error(
+        `Market not found for ${request.call_data.asset} on ${chain}`,
+      );
+    }
+
     const chainConfig = getChainConfig(chain);
     const publicClient = createPublicClient({
       chain: chainConfig,
       transport: http(),
     });
 
-    const poolInfo = await this.supabaseService.getAssetMasterData(
-      chain,
-      call_data.asset,
-    );
+    const poolInfo = marketData[0];
 
-    if (!poolInfo) {
-      throw new Error(`Market not found for ${call_data.asset} on ${chain}`);
-    }
-
-    const formattedAmount = formatDecimal(call_data.amount);
+    const formattedAmount = formatDecimal(request.call_data.amount);
     const amountInWei = parseUnits(formattedAmount, poolInfo.decimals);
 
     const data = encodeFunctionData({
@@ -81,14 +85,14 @@ export class IonicService {
     });
 
     const nonce = await publicClient.getTransactionCount({
-      address: sender as Address,
+      address: request.sender as Address,
     });
     const feeData = await publicClient.estimateFeesPerGas();
 
     return {
       chainId: chainConfig.id,
       data,
-      from: sender,
+      from: request.sender,
       to: poolInfo.pool_address,
       value: 0,
       nonce: Number(nonce),
@@ -99,24 +103,29 @@ export class IonicService {
 
   async withdraw(
     chain: Chain,
-    { call_data, sender }: PoolOperationRequestDto,
+    request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
+    const query: MarketSearchQueryDto = { asset: request.call_data.asset };
+    const marketData = await this.supabaseService.getAssetMasterData(
+      chain,
+      query,
+    );
+
+    if (!marketData.length) {
+      throw new Error(
+        `Market not found for ${request.call_data.asset} on ${chain}`,
+      );
+    }
+
     const chainConfig = getChainConfig(chain);
     const publicClient = createPublicClient({
       chain: chainConfig,
       transport: http(),
     });
 
-    const poolInfo = await this.supabaseService.getAssetMasterData(
-      chain,
-      call_data.asset,
-    );
+    const poolInfo = marketData[0];
 
-    if (!poolInfo) {
-      throw new Error(`Market not found for ${call_data.asset} on ${chain}`);
-    }
-
-    const formattedAmount = formatDecimal(call_data.amount);
+    const formattedAmount = formatDecimal(request.call_data.amount);
     const amountInWei = parseUnits(formattedAmount, poolInfo.decimals);
 
     const data = encodeFunctionData({
@@ -126,14 +135,14 @@ export class IonicService {
     });
 
     const nonce = await publicClient.getTransactionCount({
-      address: sender as Address,
+      address: request.sender as Address,
     });
     const feeData = await publicClient.estimateFeesPerGas();
 
     return {
       chainId: chainConfig.id,
       data,
-      from: sender,
+      from: request.sender,
       to: poolInfo.pool_address,
       value: 0,
       nonce: Number(nonce),
@@ -144,24 +153,29 @@ export class IonicService {
 
   async borrow(
     chain: Chain,
-    { call_data, sender }: PoolOperationRequestDto,
+    request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
+    const query: MarketSearchQueryDto = { asset: request.call_data.asset };
+    const marketData = await this.supabaseService.getAssetMasterData(
+      chain,
+      query,
+    );
+
+    if (!marketData.length) {
+      throw new Error(
+        `Market not found for ${request.call_data.asset} on ${chain}`,
+      );
+    }
+
     const chainConfig = getChainConfig(chain);
     const publicClient = createPublicClient({
       chain: chainConfig,
       transport: http(),
     });
 
-    const poolInfo = await this.supabaseService.getAssetMasterData(
-      chain,
-      call_data.asset,
-    );
+    const poolInfo = marketData[0];
 
-    if (!poolInfo) {
-      throw new Error(`Market not found for ${call_data.asset} on ${chain}`);
-    }
-
-    const formattedAmount = formatDecimal(call_data.amount);
+    const formattedAmount = formatDecimal(request.call_data.amount);
     const amountInWei = parseUnits(formattedAmount, poolInfo.decimals);
 
     const data = encodeFunctionData({
@@ -171,14 +185,14 @@ export class IonicService {
     });
 
     const nonce = await publicClient.getTransactionCount({
-      address: sender as Address,
+      address: request.sender as Address,
     });
     const feeData = await publicClient.estimateFeesPerGas();
 
     return {
       chainId: chainConfig.id,
       data,
-      from: sender,
+      from: request.sender,
       to: poolInfo.pool_address,
       value: 0,
       nonce: Number(nonce),
@@ -189,24 +203,29 @@ export class IonicService {
 
   async repay(
     chain: Chain,
-    { call_data, sender }: PoolOperationRequestDto,
+    request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
+    const query: MarketSearchQueryDto = { asset: request.call_data.asset };
+    const marketData = await this.supabaseService.getAssetMasterData(
+      chain,
+      query,
+    );
+
+    if (!marketData.length) {
+      throw new Error(
+        `Market not found for ${request.call_data.asset} on ${chain}`,
+      );
+    }
+
     const chainConfig = getChainConfig(chain);
     const publicClient = createPublicClient({
       chain: chainConfig,
       transport: http(),
     });
 
-    const poolInfo = await this.supabaseService.getAssetMasterData(
-      chain,
-      call_data.asset,
-    );
+    const poolInfo = marketData[0];
 
-    if (!poolInfo) {
-      throw new Error(`Market not found for ${call_data.asset} on ${chain}`);
-    }
-
-    const formattedAmount = formatDecimal(call_data.amount);
+    const formattedAmount = formatDecimal(request.call_data.amount);
     const amountInWei = parseUnits(formattedAmount, poolInfo.decimals);
 
     const data = encodeFunctionData({
@@ -216,14 +235,14 @@ export class IonicService {
     });
 
     const nonce = await publicClient.getTransactionCount({
-      address: sender as Address,
+      address: request.sender as Address,
     });
     const feeData = await publicClient.estimateFeesPerGas();
 
     return {
       chainId: chainConfig.id,
       data,
-      from: sender,
+      from: request.sender,
       to: poolInfo.pool_address,
       value: 0,
       nonce: Number(nonce),

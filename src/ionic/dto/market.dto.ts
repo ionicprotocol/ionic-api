@@ -30,7 +30,7 @@ export class GetMarketAddressParamsDto {
   asset: string;
 }
 
-export class MarketAddressResponseDto {
+export class MarketInfoDto {
   @ApiProperty({
     description: 'The market (cToken) address',
     example: '0x1234567890123456789012345678901234567890',
@@ -114,4 +114,12 @@ export class MarketAddressResponseDto {
     example: false,
   })
   is_mint_paused: boolean | null;
+}
+
+export class MarketsResponseDto {
+  @ApiProperty({
+    description: 'List of markets matching the query parameters',
+    type: [MarketInfoDto],
+  })
+  markets: MarketInfoDto[];
 }
