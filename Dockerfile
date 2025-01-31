@@ -3,9 +3,9 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy both package.json and package-lock.json
-COPY package*.json package-lock.json ./
-RUN npm ci
+# Copy package files, but don't fail if package-lock.json doesn't exist
+COPY package*.json ./
+RUN npm install
 
 COPY .env.example ./.env
 COPY . .
@@ -16,9 +16,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy both package.json and package-lock.json
-COPY package*.json package-lock.json ./
-RUN npm ci --only=production
+# Copy package files
+COPY package*.json ./
+RUN npm install --only=production
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/.env ./
