@@ -53,7 +53,7 @@ jobs:
       - name: Set up .env file
         run: |
           echo "SUPABASE_URL=${{ secrets.SUPABASE_API_URL }}" > .env
-          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
     
       - name: Build Docker Image
         # working-directory: airdrop-backend
