@@ -47,19 +47,21 @@ jobs:
           sudo apt-get install -y docker-ce docker-ce-cli containerd.io
           sudo usermod -aG docker $USER
 
-      - name: Create .env file
-        run: |
-          cp .env.example .env
-          sed -i "s|your_supabase_url|${{ secrets.SUPABASE_URL }}|g" .env
-          sed -i "s|your_supabase_api_key|${{ secrets.SUPABASE_API_KEY }}|g" .env
-          sed -i "s|your_supabase_key|${{ secrets.SUPABASE_KEY }}|g" .env
-          # sed -i "s|your_key|${{ secrets.INFURA_KEY }}|g" .env
-          # sed -i "s|https://optimism-mainnet.infura.io/v3/your_key|${{ secrets.OPTIMISM_RPC_URL }}|g" .env
-          # sed -i "s|https://base-mainnet.infura.io/v3/your_key|${{ secrets.BASE_RPC_URL }}|g" .env
+      # - name: Create .env file
+      #   run: |
+      #     cp .env.example .env
+      #     sed -i "s|your_supabase_url|${{ secrets.SUPABASE_URL }}|g" .env
+      #     sed -i "s|your_supabase_api_key|${{ secrets.SUPABASE_API_KEY }}|g" .env
+      #     sed -i "s|your_supabase_key|${{ secrets.SUPABASE_KEY }}|g" .env
+      #     # sed -i "s|your_key|${{ secrets.INFURA_KEY }}|g" .env
+      #     # sed -i "s|https://optimism-mainnet.infura.io/v3/your_key|${{ secrets.OPTIMISM_RPC_URL }}|g" .env
+      #     # sed -i "s|https://base-mainnet.infura.io/v3/your_key|${{ secrets.BASE_RPC_URL }}|g" .env
     
       - name: Build Docker Image
         # working-directory: airdrop-backend
         run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
           docker build --platform linux/amd64 -t api/ionic .
           docker images 
 
