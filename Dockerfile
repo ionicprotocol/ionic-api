@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
+COPY .env.example ./.env
 COPY . .
 RUN npm run build
 
@@ -18,6 +19,7 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/.env ./
 
 EXPOSE 3000
 CMD ["node", "dist/main"] 

@@ -4,7 +4,8 @@ dist
 .git
 .gitignore
 .env
-.env.*
+.env.local
+.env.*.local
 README.md
 .vscode
 coverage
