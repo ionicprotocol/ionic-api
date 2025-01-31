@@ -2,7 +2,7 @@ name: Deploy to ECS
 
 on:
   push:
-    branches: [main, feat/nest]
+    branches: [feat/nest]
 
 jobs:
   deploy:
