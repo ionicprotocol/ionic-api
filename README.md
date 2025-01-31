@@ -1,84 +1,242 @@
-# Ionic API v2
+# 🌊 Ionic API v2
 
-A NestJS-based API server for interacting with Ionic and Morpho protocols.
+A robust and secure REST API for interacting with Ionic and Morpho protocols across multiple chains. Built with TypeScript, NestJS, and Viem.
 
-## Features
+## 🌟 Features
 
-- Morpho position retrieval
-- Ionic market operations (supply, withdraw, borrow, repay)
-- Swagger API documentation
-- TypeScript support
-- Docker deployment support
+- **Multi-Chain Support**: Seamlessly interact with Ionic Protocol on:
+  - ⚡ Mode Network
+  - 🔵 Base 
+  - 🔴 Optimism
+  - 🟣 Bob
+  - 🟡 Fraxtal
+  - 🟢 Lisk
+  - 🔷 Ink
+  - 🟨 SuperSeed
+  - 🟦 WorldChain
+  - 🟩 Swell
+  - 🟪 Soneium
 
-## Prerequisites
+- **Core Operations**:
+  - 📊 Get market information
+  - 💼 View user positions
+  - 💰 Supply assets
+  - 🏦 Withdraw funds
+  - 💸 Borrow assets
+  - 💳 Repay loans
 
-- Node.js 20.x or later
-- npm 9.x or later
-- Docker (optional, for containerized deployment)
+- **Security First**:
+  - ✅ Input validation with class-validator
+  - 🛡️ CORS protection
+  - 🔐 Environment variable protection
+  - 📝 Comprehensive request logging
 
-## Installation
+## 🚀 Quick Start
 
-```bash
-# Install dependencies
-npm install
+1. **Clone & Install**
+   ```bash
+   git clone <repository-url>
+   cd ionic-api-v2
+   pnpm install
+   ```
+
+2. **Environment Setup**
+   ```bash
+   cp .env.example .env
+   # Add your credentials:
+   # SUPABASE_URL=your_supabase_url
+   # SUPABASE_KEY=your_supabase_key
+   ```
+
+3. **Start Development Server**
+   ```bash
+   pnpm run start:dev
+   ```
+
+## 📚 API Documentation
+
+### Swagger UI
+Access our interactive API documentation at `/api-docs` to:
+- Explore all available endpoints
+- Test API calls directly from your browser
+- View request/response schemas
+- Download OpenAPI specification
+
+### Available Endpoints
+
+#### Ionic Protocol Endpoints
+
+<details>
+<summary><b>Get Market Information</b></summary>
+
+```http
+GET /beta/v0/ionic/market/:chain
 ```
+Get detailed market information with optional filters:
+- `asset`: Asset symbol (e.g., "WETH")
+- `address`: Market address
+- `poolAddress`: Pool address
+- `underlyingAddress`: Underlying token address
+- `underlyingName`: Underlying token name
+- `underlyingSymbol`: Underlying token symbol
+</details>
 
-## Configuration
+<details>
+<summary><b>Get User Positions</b></summary>
 
-Create a `.env` file in the root directory with the following variables:
-
-```env
-PORT=3000
-NODE_ENV=development
+```http
+GET /beta/v0/ionic/position/:chain/:address
 ```
+Get user positions across all markets, including:
+- Pool information
+- Asset balances
+- Supply/borrow amounts
+- Health factors
+- Reward information
+</details>
 
-## Development
+<details>
+<summary><b>Supply Assets</b></summary>
 
-```bash
-# Start development server
-npm run start:dev
-
-# Run tests
-npm run test
-
-# Run e2e tests
-npm run test:e2e
-
-# Run linting
-npm run lint
-
-# Run formatting
-npm run format
+```http
+POST /beta/v0/ionic/supply/:chain
 ```
-
-## API Documentation
-
-Once the server is running, visit http://localhost:3000/api-docs to view the Swagger documentation.
-
-## Docker Deployment
-
-```bash
-# Build Docker image
-docker build -t ionic-api-v2 .
-
-# Run Docker container
-docker run -p 3000:3000 ionic-api-v2
+Supply assets to an Ionic pool. Request body:
+```json
+{
+  "sender": "0x...",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 1.5,
+    "on_behalf_of": "0x..."
+  }
+}
 ```
+</details>
 
-## API Endpoints
+<details>
+<summary><b>Withdraw Assets</b></summary>
 
-### Morpho
+```http
+POST /beta/v0/ionic/withdraw/:chain
+```
+Withdraw your supplied assets. Request body:
+```json
+{
+  "sender": "0x...",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 1.0,
+    "on_behalf_of": "0x..."
+  }
+}
+```
+</details>
 
-- `GET /beta/v0/morpho/position/:chain/:positionId/:account` - Get Morpho position details
+<details>
+<summary><b>Borrow Assets</b></summary>
 
-### Ionic
+```http
+POST /beta/v0/ionic/borrow/:chain
+```
+Borrow assets from a pool. Request body:
+```json
+{
+  "sender": "0x...",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 0.5,
+    "on_behalf_of": "0x..."
+  }
+}
+```
+</details>
 
-- `GET /beta/v0/ionic/market-address/:chain/:asset` - Get Ionic market address
-- `POST /beta/v0/ionic/supply/:chain` - Supply to Ionic pool
-- `POST /beta/v0/ionic/withdraw/:chain` - Withdraw from Ionic pool
-- `POST /beta/v0/ionic/borrow/:chain` - Borrow from Ionic pool
-- `POST /beta/v0/ionic/repay/:chain` - Repay to Ionic pool
+<details>
+<summary><b>Repay Loan</b></summary>
 
-## License
+```http
+POST /beta/v0/ionic/repay/:chain
+```
+Repay your borrowed assets. Request body:
+```json
+{
+  "sender": "0x...",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 0.5,
+    "on_behalf_of": "0x..."
+  }
+}
+```
+</details>
 
-[MIT](LICENSE)
+#### Morpho Protocol Endpoints
+
+<details>
+<summary><b>Get Position Details</b></summary>
+
+```http
+GET /beta/v0/morpho/position/:chain/:marketId/:sender
+```
+Get detailed position information for a specific market and user.
+</details>
+
+<details>
+<summary><b>Get Market Details</b></summary>
+
+```http
+GET /beta/v0/morpho/market/:chain
+```
+Get market details with optional filters:
+- `marketId`: Market ID
+- `collateralToken`: Collateral token address
+- `collateralTokenSymbol`: Collateral token symbol
+- `borrowToken`: Borrow token address
+- `borrowTokenSymbol`: Borrow token symbol
+</details>
+
+## 🛠️ Tech Stack
+
+- **TypeScript** - Type safety and better developer experience
+- **NestJS** - Progressive Node.js framework
+- **Viem** - Modern Ethereum library
+- **Supabase** - Backend infrastructure
+- **Swagger** - API documentation
+- **Jest** - Testing framework
+
+## 🔐 Security
+
+This API implements several security measures:
+- Request validation with class-validator
+- Comprehensive request logging
+- Environment variable protection
+- Proper error handling and logging
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## ⚡ Performance
+
+- Built on NestJS for optimal performance
+- Efficient error handling with global filters
+- Fast response times with proper caching
+- Minimal dependencies
+
+## 🔗 Related Links
+
+- [Ionic Protocol Documentation](https://docs.ionic.money/)
+- [Mode Network](https://mode.network/)
+- [Base](https://base.org/)
+- [Optimism](https://optimism.io/)
+- [Lisk](https://lisk.com/)
+- [Swell Network](https://swellnetwork.io/)
+
+---
+
+<p align="center">Built with ❤️ for the DeFi community</p>
