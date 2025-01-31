@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Chain } from '../common/types/chain.type';
 import { MarketsResponseDto, MarketInfoDto } from './dto/market.dto';
 import {
@@ -18,6 +18,8 @@ import { flywheelLensRouterAbi } from './abi/flywheelLensRouter';
 
 @Injectable()
 export class IonicService {
+  private readonly logger = new Logger(IonicService.name);
+
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly chainService: ChainService,
@@ -72,16 +74,22 @@ export class IonicService {
       throw new Error('Failed to get public pools');
     }
     const [, pools] = result.result;
+    console.log('🚀 ~ IonicService ~ pools:', pools);
     const positions: PositionsResponseDto = {
       pools: [],
     };
     for (const pool of pools) {
-      const healthFactor = await publicClient.readContract({
-        address: poolLensAddress,
-        abi: poolLensAbi,
-        functionName: 'getHealthFactor',
-        args: [address, pool.comptroller],
-      });
+      let healthFactor = 0n;
+      try {
+        healthFactor = await publicClient.readContract({
+          address: poolLensAddress,
+          abi: poolLensAbi,
+          functionName: 'getHealthFactor',
+          args: [address, pool.comptroller],
+        });
+      } catch (error) {
+        this.logger.error('Error getting health factor:', error);
+      }
       const assetsResult = await publicClient.simulateContract({
         address: poolLensAddress,
         abi: poolLensAbi,
