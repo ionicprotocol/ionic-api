@@ -1,11 +1,8 @@
 name: Deploy to ECS
 
 on:
-  # workflow_dispatch:
   push:
-    branches:
-      - main
-      - feat/nest
+    branches: [main, feat/nest]
 
 jobs:
   deploy:
