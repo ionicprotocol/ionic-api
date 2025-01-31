@@ -5,6 +5,12 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
+  // @ts-expect-error BigInt.prototype.toJSON is not defined
+  BigInt.prototype.toJSON = function (this: bigint): string {
+    const int = Number.parseInt(this.toString());
+    return int.toString() ?? this.toString();
+  };
+
   const app = await NestFactory.create(AppModule);
 
   // Enable validation pipe globally

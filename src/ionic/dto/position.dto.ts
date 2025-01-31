@@ -66,11 +66,11 @@ export class AssetPositionDto {
   @ApiProperty({ description: 'The underlying token balance' })
   underlyingBalance: string;
 
-  @ApiProperty({ description: 'Supply rate per block' })
-  supplyRatePerBlock: string;
+  @ApiProperty({ description: 'Supply APY' })
+  supplyApy: string;
 
-  @ApiProperty({ description: 'Borrow rate per block' })
-  borrowRatePerBlock: string;
+  @ApiProperty({ description: 'Borrow APY' })
+  borrowApy: string;
 
   @ApiProperty({ description: 'Total supply' })
   totalSupply: string;

@@ -5,7 +5,7 @@ import {
   PoolOperationRequestDto,
   PoolOperationResponseDto,
 } from './dto/pool-operations.dto';
-import { Address, encodeFunctionData, parseUnits } from 'viem';
+import { Address, encodeFunctionData, formatUnits, parseUnits } from 'viem';
 import { SupabaseService } from '../common/database/supabase.service';
 import { formatDecimal } from 'src/common/utils/number.utils';
 import { IonicPoolABI } from './abi/pool';
@@ -15,6 +15,12 @@ import { PositionsResponseDto } from './dto/position.dto';
 import { ADDRESSES } from './constants/addresses';
 import { poolLensAbi } from './abi/poolLens';
 import { flywheelLensRouterAbi } from './abi/flywheelLensRouter';
+
+function ratePerBlockToAPY(ratePerBlock: bigint, blocksPerMin: number): number {
+  const blocksPerDay = blocksPerMin * 60 * 24;
+  const rateAsNumber = Number(formatUnits(ratePerBlock, 18));
+  return (Math.pow(rateAsNumber * blocksPerDay + 1, 365) - 1) * 100;
+}
 
 @Injectable()
 export class IonicService {
@@ -113,8 +119,8 @@ export class IonicService {
         ...asset,
         underlyingDecimals: asset.underlyingDecimals.toString(),
         underlyingBalance: asset.underlyingBalance.toString(),
-        supplyRatePerBlock: asset.supplyRatePerBlock.toString(),
-        borrowRatePerBlock: asset.borrowRatePerBlock.toString(),
+        supplyApy: ratePerBlockToAPY(asset.supplyRatePerBlock, 30).toString(),
+        borrowApy: ratePerBlockToAPY(asset.borrowRatePerBlock, 30).toString(),
         totalSupply: asset.totalSupply.toString(),
         totalBorrow: asset.totalBorrow.toString(),
         supplyBalance: asset.supplyBalance.toString(),
@@ -131,7 +137,7 @@ export class IonicService {
           ?.rewardsInfo.filter((reward) => reward.formattedAPR > 0n)
           .map((reward) => ({
             rewardToken: reward.rewardToken,
-            apy: reward.formattedAPR.toString(),
+            apy: formatUnits(reward.formattedAPR, 18 - 2),
           })),
       }));
       positions.pools.push({
