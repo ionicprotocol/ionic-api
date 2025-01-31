@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from './types/supabase.types';
-import { Chain } from '../types/chain.type';
 import { getChainId } from '../utils/chain.utils';
 import { MarketSearchQueryDto } from '../../ionic/dto/market-search.dto';
 
@@ -21,35 +20,42 @@ export class SupabaseService {
   }
 
   async getAssetMasterData(
-    chain: Chain,
-    query: MarketSearchQueryDto,
+    query: MarketSearchQueryDto = {},
   ): Promise<AssetMasterData[]> {
     let queryBuilder = this.supabase
-      .from('asset_master_data_test2')
+      .from('asset_master_data_main')
       .select('*')
-      .eq('chain_id', getChainId(chain));
+      .limit(1); // for now limit 1 until table is fixed
 
-    // Apply filters based on query parameters
+    // Apply chain filter if provided
+    if (query.chain) {
+      queryBuilder = queryBuilder.eq('chain_id', getChainId(query.chain));
+    }
+
+    // Apply filters with case-insensitive comparisons
     if (query.asset || query.underlyingSymbol) {
       const symbol = query.asset || query.underlyingSymbol;
       if (symbol) {
-        queryBuilder = queryBuilder.eq('underlying_symbol', symbol);
+        queryBuilder = queryBuilder.ilike('underlying_symbol', symbol);
       }
     }
     if (query.address) {
-      queryBuilder = queryBuilder.eq('ctoken_address', query.address);
+      queryBuilder = queryBuilder.ilike('ctoken_address', query.address);
     }
     if (query.poolAddress) {
-      queryBuilder = queryBuilder.eq('pool_address', query.poolAddress);
+      queryBuilder = queryBuilder.ilike('pool_address', query.poolAddress);
     }
     if (query.underlyingAddress) {
-      queryBuilder = queryBuilder.eq(
+      queryBuilder = queryBuilder.ilike(
         'underlying_address',
         query.underlyingAddress,
       );
     }
     if (query.underlyingName) {
-      queryBuilder = queryBuilder.eq('underlying_name', query.underlyingName);
+      queryBuilder = queryBuilder.ilike(
+        'underlying_name',
+        query.underlyingName,
+      );
     }
 
     const { data, error } = await queryBuilder;

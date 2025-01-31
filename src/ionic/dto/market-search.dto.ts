@@ -1,7 +1,29 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
+import { Chain } from '../../common/types/chain.type';
 
 export class MarketSearchQueryDto {
+  @ApiProperty({
+    description: 'The blockchain network',
+    enum: [
+      'optimism',
+      'base',
+      'mode',
+      'bob',
+      'fraxtal',
+      'lisk',
+      'ink',
+      'superseed',
+      'worldchain',
+      'swell',
+      'soneium',
+    ],
+    example: 'optimism',
+    required: false,
+  })
+  @IsOptional()
+  chain?: Chain;
+
   @ApiProperty({
     description: 'Asset symbol to search for',
     example: 'WETH',

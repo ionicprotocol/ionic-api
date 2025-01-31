@@ -58,7 +58,7 @@ GET {{baseUrl}}/beta/v0/ionic/market/optimism?poolAddress=0x12345678901234567890
 Content-Type: application/json
 
 ### Get Ionic Market Info by Underlying Symbol
-GET {{baseUrl}}/beta/v0/ionic/market/optimism?underlyingSymbol=WETH
+GET {{baseUrl}}/beta/v0/ionic/market?underlyingSymbol=uBTC
 Content-Type: application/json
 
 ### Get User Positions in Ionic Markets

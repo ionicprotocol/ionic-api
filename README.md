@@ -70,9 +70,25 @@ Access our interactive API documentation at `/api-docs` to:
 <summary><b>Get Market Information</b></summary>
 
 ```http
-GET /beta/v0/ionic/market/:chain
+GET /beta/v0/ionic/market
 ```
 Get detailed market information with optional filters:
+- `chain`: Blockchain network (e.g., "optimism", "base", etc.)
+- `asset`: Asset symbol (e.g., "WETH")
+- `address`: Market address
+- `poolAddress`: Pool address
+- `underlyingAddress`: Underlying token address
+- `underlyingName`: Underlying token name
+- `underlyingSymbol`: Underlying token symbol
+</details>
+
+<details>
+<summary><b>Get Market Information (Specific Chain)</b></summary>
+
+```http
+GET /beta/v0/ionic/market/:chain
+```
+Get detailed market information for a specific chain with optional filters:
 - `asset`: Asset symbol (e.g., "WETH")
 - `address`: Market address
 - `poolAddress`: Pool address

@@ -32,13 +32,9 @@ export class IonicService {
   ) {}
 
   async getMarketInfo(
-    chain: Chain,
     query: MarketSearchQueryDto,
   ): Promise<MarketsResponseDto> {
-    const marketData = await this.supabaseService.getAssetMasterData(
-      chain,
-      query,
-    );
+    const marketData = await this.supabaseService.getAssetMasterData(query);
 
     const markets: MarketInfoDto[] = marketData.map((data) => ({
       address: data.ctoken_address,
@@ -154,11 +150,11 @@ export class IonicService {
     chain: Chain,
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
-    const query: MarketSearchQueryDto = { asset: request.call_data.asset };
-    const marketData = await this.supabaseService.getAssetMasterData(
+    const query: MarketSearchQueryDto = {
+      asset: request.call_data.asset,
       chain,
-      query,
-    );
+    };
+    const marketData = await this.supabaseService.getAssetMasterData(query);
 
     if (!marketData.length) {
       throw new Error(
@@ -199,11 +195,11 @@ export class IonicService {
     chain: Chain,
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
-    const query: MarketSearchQueryDto = { asset: request.call_data.asset };
-    const marketData = await this.supabaseService.getAssetMasterData(
+    const query: MarketSearchQueryDto = {
+      asset: request.call_data.asset,
       chain,
-      query,
-    );
+    };
+    const marketData = await this.supabaseService.getAssetMasterData(query);
 
     if (!marketData.length) {
       throw new Error(
@@ -244,11 +240,11 @@ export class IonicService {
     chain: Chain,
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
-    const query: MarketSearchQueryDto = { asset: request.call_data.asset };
-    const marketData = await this.supabaseService.getAssetMasterData(
+    const query: MarketSearchQueryDto = {
+      asset: request.call_data.asset,
       chain,
-      query,
-    );
+    };
+    const marketData = await this.supabaseService.getAssetMasterData(query);
 
     if (!marketData.length) {
       throw new Error(
@@ -289,11 +285,11 @@ export class IonicService {
     chain: Chain,
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
-    const query: MarketSearchQueryDto = { asset: request.call_data.asset };
-    const marketData = await this.supabaseService.getAssetMasterData(
+    const query: MarketSearchQueryDto = {
+      asset: request.call_data.asset,
       chain,
-      query,
-    );
+    };
+    const marketData = await this.supabaseService.getAssetMasterData(query);
 
     if (!marketData.length) {
       throw new Error(

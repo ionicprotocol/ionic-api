@@ -17,7 +17,7 @@ import { Address } from 'viem';
 export class IonicController {
   constructor(private readonly ionicService: IonicService) {}
 
-  @Get('market/:chain')
+  @Get('market')
   @ApiOperation({ summary: 'Get Ionic market information' })
   @ApiResponse({
     status: 200,
@@ -25,10 +25,9 @@ export class IonicController {
     type: MarketsResponseDto,
   })
   async getMarketInfo(
-    @Param('chain', ChainValidationPipe) chain: Chain,
     @Query() query: MarketSearchQueryDto,
   ): Promise<MarketsResponseDto> {
-    return this.ionicService.getMarketInfo(chain, query);
+    return this.ionicService.getMarketInfo(query);
   }
 
   @Get('positions/:chain/:address')
