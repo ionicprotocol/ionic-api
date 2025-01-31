@@ -3,7 +3,8 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy both package.json and package-lock.json
+COPY package*.json package-lock.json ./
 RUN npm ci
 
 COPY .env.example ./.env
@@ -15,7 +16,8 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy both package.json and package-lock.json
+COPY package*.json package-lock.json ./
 RUN npm ci --only=production
 
 COPY --from=builder /app/dist ./dist
