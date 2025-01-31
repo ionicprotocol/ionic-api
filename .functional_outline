@@ -1,0 +1,83 @@
+# Ionic API v2 Functional Outline
+
+## Core Features
+
+### Chain Support
+- Multi-chain support for: Optimism, Base, Mode, Bob, Fraxtal, Lisk, Ink, Superseed, Worldchain, Swell, Soneium
+- Configurable RPC endpoints per chain
+- Chain validation and ID mapping
+- Cached public client instances per chain
+
+### Database Integration
+- Supabase integration for market data
+- Asset master data storage and retrieval
+- Market information caching and updates
+
+## API Endpoints
+
+### Morpho Protocol Integration
+1. Position Management
+   - GET /beta/v0/morpho/position/:chain/:marketId/:sender
+   - Retrieves detailed position information
+   - Includes health factor and market parameters
+
+2. Market Information
+   - GET /beta/v0/morpho/market/:chain
+   - Supports query parameters:
+     * marketId
+     * collateralToken
+     * collateralTokenSymbol
+     * borrowToken
+     * borrowTokenSymbol
+   - Returns market details including APYs and utilization
+
+### Ionic Protocol Integration
+1. Market Information
+   - GET /beta/v0/ionic/market/:chain
+   - Supports query parameters:
+     * asset
+     * address (cToken)
+     * poolAddress
+     * underlyingAddress
+     * underlyingName
+     * underlyingSymbol
+   - Returns market details including APYs and pool status
+
+2. Pool Operations
+   - POST /beta/v0/ionic/supply/:chain
+   - POST /beta/v0/ionic/withdraw/:chain
+   - POST /beta/v0/ionic/borrow/:chain
+   - POST /beta/v0/ionic/repay/:chain
+   - All operations support:
+     * Asset specification
+     * Amount management
+     * On-behalf-of transactions
+     * Gas estimation
+     * Transaction preparation
+
+## Technical Features
+
+### Data Types
+- Strongly typed DTOs for all requests/responses
+- Validation using class-validator
+- Swagger/OpenAPI documentation
+- Chain-specific type safety
+
+### Infrastructure
+- Environment-based configuration
+- Docker containerization
+- Dependency injection architecture
+- Modular service design
+
+### Error Handling
+- Chain validation pipe
+- Request validation
+- Database error handling
+- RPC error management
+
+### Development
+- TypeScript support
+- ESLint configuration
+- Prettier formatting
+- Jest testing setup
+- E2E testing support 

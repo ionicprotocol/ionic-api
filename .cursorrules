@@ -1,1 +1,108 @@
-1. **Verify Information**: Always verify information before presenting it. Do not make assumptions or speculate without clear evidence.2. **File-by-File Changes**: Make changes file by file and give me a chance to spot mistakes.3. **No Apologies**: Never use apologies.4. **No Understanding Feedback**: Avoid giving feedback about understanding in comments or documentation.5. **No Whitespace Suggestions**: Don't suggest whitespace changes.6. **No Summaries**: Don't summarize changes made.7. **No Inventions**: Don't invent changes other than what's explicitly requested.8. **No Unnecessary Confirmations**: Don't ask for confirmation of information already provided in the context.9. **Preserve Existing Code**: Don't remove unrelated code or functionalities. Pay attention to preserving existing structures.10. **Single Chunk Edits**: Provide all edits in a single chunk instead of multiple-step instructions or explanations for the same file.11. **No Implementation Checks**: Don't ask the user to verify implementations that are visible in the provided context.12. **No Unnecessary Updates**: Don't suggest updates or changes to files when there are no actual modifications needed.13. **Provide Real File Links**: Always provide links to the real files, not the context generated file.14. **No Current Implementation**: Don't show or discuss the current implementation unless specifically requested.15. **Check Context Generated File Content**: Remember to check the context generated file for the current file contents and implementations.16. **Use Explicit Variable Names**: Prefer descriptive, explicit variable names over short, ambiguous ones to enhance code readability.17. **Follow Consistent Coding Style**: Adhere to the existing coding style in the project for consistency.18. **Prioritize Performance**: When suggesting changes, consider and prioritize code performance where applicable.19. **Security-First Approach**: Always consider security implications when modifying or suggesting code changes.20. **Test Coverage**: Suggest or include appropriate unit tests for new or modified code.21. **Error Handling**: Implement robust error handling and logging where necessary.22. **Modular Design**: Encourage modular design principles to improve code maintainability and reusability.23. **Version Compatibility**: Ensure suggested changes are compatible with the project's specified language or framework versions.24. **Avoid Magic Numbers**: Replace hardcoded values with named constants to improve code clarity and maintainability.25. **Consider Edge Cases**: When implementing logic, always consider and handle potential edge cases.26. **Use Assertions**: Include assertions wherever possible to validate assumptions and catch potential errors early.
+This is the current file structure of the project:
+
+#### **1. File Creation Rules**
+- All new files must:
+  - Follow the established folder structure and naming conventions.
+  - Include appropriate comments and documentation for exported classes, interfaces, and functions.
+  - Be unit tested if they contain business logic or critical functionality.
+- New modules should:
+  - Include a `module.ts` file to define the module.
+  - Include a `service.ts` file for business logic (if applicable).
+  - Include a `controller.ts` file for API endpoints (if applicable).
+  - Be added to `app.module.ts` or their parent module.
+- DTOs:
+  - Should be placed in the `dto/` folder of the respective module.
+  - Must use TypeScript's `class-validator` decorators for validation.
+- Constants:
+  - Should be placed in a `constants/` folder and use uppercase naming with underscores (e.g., `API_URL`).
+- Utils:
+  - Utility functions should be placed in the `utils/` folder and follow functional programming principles where possible.
+
+#### **2. Agent Rules**
+- New features must:
+  - Be developed incrementally (Agile approach), focusing on one slice of functionality at a time.
+  - Include tests (unit, integration, or e2e as appropriate) before being marked as complete.
+- Modifying existing code:
+  - Always check for dependencies and cascading effects on other files or modules.
+  - Refactor code only if it improves readability, performance, or maintainability without introducing breaking changes.
+- Code reviews:
+  - All pull requests must be reviewed by at least one team member before merging into the main branch.
+
+#### **3. Composer Continuity**
+- When "Agent Refresh" is triggered:
+  - Provide a concise summary of the project structure, current tasks, and any bugs or blockers.
+  - List pending features in order of priority.
+  - Ensure that all relevant files are mentioned explicitly if they are part of the current focus area.
+
+#### **4. Functional Outline Rules**
+- The `.functional_outline` file must:
+  - Be updated when significant changes occur (new major functions or behavior changes).
+  - Use a clear hierarchical format with numbered sections and subsections.
+  - Mark incomplete features as "In Progress" until verified as working and complete.
+- Example structure for `.functional_outline`:
+    ```
+    # Functional Outline
+
+    ## 1. Ionic Module
+      ### 1.1 Features
+        - Market Search: Allows users to search markets by name [Complete]
+        - Pool Operations: Handles user interactions with liquidity pools [In Progress]
+
+    ## 2. Morpho Module
+      ### 2.1 Features
+        - Get Market Info: Retrieves detailed information about a market [Complete]
+        ...
+    ```
+
+#### **5. TypeScript Development Rules**
+##### **5.1 General Best Practices**
+- Use `strict` mode in `tsconfig.json` to enforce type safety.
+- Prefer interfaces over types for object definitions unless specific use cases require types (e.g., unions).
+- Use enums sparingly; prefer string literal types when possible for better tree-shaking in front-end applications.
+
+##### **5.2 NestJS-Specific Rules**
+- Services:
+  - Should encapsulate business logic and avoid direct interaction with external dependencies (use dependency injection).
+- Controllers:
+  - Should only handle HTTP requests/responses; delegate business logic to services.
+- Modules:
+  - Group related functionality into cohesive modules.
+  - Avoid circular dependencies between modules by refactoring shared logic into a common module if needed.
+
+##### **5.3 Testing Rules**
+- Unit Tests:
+  - Every service, utility function, and controller must have unit tests covering edge cases.
+- Integration Tests:
+  - Test interactions between modules using NestJS's testing utilities (`Test.createTestingModule()`).
+- End-to-End Tests:
+  - Place e2e tests in the `test/` directory using tools like Supertest to validate API behavior.
+
+##### **5.4 Linting & Formatting**
+- Use ESLint with NestJS-specific configurations (`@nestjs/eslint-plugin`) to enforce coding standards.
+- Use Prettier for consistent code formatting; ensure it integrates with ESLint (`eslint-config-prettier`).
+- Run linting (`npm run lint`) and formatting checks before every commit.
+
+##### **5.5 Error Handling**
+- All services should use custom exceptions extending NestJS's built-in exceptions (`HttpException`, etc.).
+- Controllers should handle errors gracefully using NestJS's exception filters (`@Catch()`).
+
+##### **5.6 Documentation**
+- Use Swagger (`@nestjs/swagger`) to generate API documentation automatically from decorators in controllers and DTOs.
+- Add JSDoc comments to all public methods, classes, and interfaces.
+
+#### **6. Modern Tooling Rules**
+##### **6.1 Git Workflow**
+- Follow Git Flow or trunk-based development depending on team preferences.
+- Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
+##### **6.2 CI/CD**
+- Set up CI pipelines to run tests, linting, and build checks on every pull request using tools like GitHub Actions or CircleCI.
+- Ensure Docker builds are tested as part of the pipeline.
+
+##### **6.3 Dependency Management**
+- Keep dependencies up-to-date using tools like Dependabot or Renovate.
+- Avoid adding unnecessary dependencies; prefer native solutions when possible.
+
+##### **6.4 Performance Optimization**
+- Use lazy-loading for modules where applicable (`imports: [forwardRef(() => ModuleName)]`).
+- Optimize database queries by leveraging ORM features like query builders or raw SQL when necessary.

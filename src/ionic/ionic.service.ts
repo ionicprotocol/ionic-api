@@ -1,26 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { Chain } from '../common/types/chain.type';
-import { getChainConfig } from '../common/utils/chain.utils';
 import { MarketsResponseDto, MarketInfoDto } from './dto/market.dto';
 import {
   PoolOperationRequestDto,
   PoolOperationResponseDto,
 } from './dto/pool-operations.dto';
-import {
-  Address,
-  createPublicClient,
-  encodeFunctionData,
-  http,
-  parseUnits,
-} from 'viem';
+import { Address, encodeFunctionData, parseUnits } from 'viem';
 import { SupabaseService } from '../common/database/supabase.service';
 import { formatDecimal } from 'src/common/utils/number.utils';
-import { IonicPoolABI } from './abi/ionicPool';
+import { IonicPoolABI } from './abi/pool';
 import { MarketSearchQueryDto } from './dto/market-search.dto';
+import { ChainService } from '../common/services/chain.service';
+import { PositionsResponseDto } from './dto/position.dto';
+import { ADDRESSES } from './constants/addresses';
+import { poolLensAbi } from './abi/poolLens';
+import { flywheelLensRouterAbi } from './abi/flywheelLensRouter';
 
 @Injectable()
 export class IonicService {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly chainService: ChainService,
+  ) {}
 
   async getMarketInfo(
     chain: Chain,
@@ -51,6 +52,90 @@ export class IonicService {
     return { markets };
   }
 
+  async getPositions(
+    chain: Chain,
+    address: Address,
+  ): Promise<PositionsResponseDto> {
+    const publicClient = this.chainService.getPublicClient(chain);
+    const chainId = this.chainService.getChainId(chain);
+    const poolLensAddress = ADDRESSES[chainId].poolLens;
+    const flywheelLensRouterAddress = ADDRESSES[chainId].flywheelLensRouter;
+    if (!flywheelLensRouterAddress || !poolLensAddress) {
+      throw new Error('Pool lens or flywheel lens router not found');
+    }
+    const result = await publicClient.simulateContract({
+      address: poolLensAddress,
+      abi: poolLensAbi,
+      functionName: 'getPublicPoolsWithData',
+    });
+    if (!result.result) {
+      throw new Error('Failed to get public pools');
+    }
+    const [, pools] = result.result;
+    const positions: PositionsResponseDto = {
+      pools: [],
+    };
+    for (const pool of pools) {
+      const healthFactor = await publicClient.readContract({
+        address: poolLensAddress,
+        abi: poolLensAbi,
+        functionName: 'getHealthFactor',
+        args: [address, pool.comptroller],
+      });
+      const assetsResult = await publicClient.simulateContract({
+        address: poolLensAddress,
+        abi: poolLensAbi,
+        functionName: 'getPoolAssetsByUser',
+        args: [pool.comptroller, address],
+      });
+      if (!assetsResult.result) {
+        throw new Error('Failed to get pool assets');
+      }
+      const rewardsInfoResult = await publicClient.simulateContract({
+        address: flywheelLensRouterAddress,
+        abi: flywheelLensRouterAbi,
+        functionName: 'getPoolMarketRewardsInfo',
+        args: [pool.comptroller],
+      });
+      if (!rewardsInfoResult.result) {
+        throw new Error('Failed to get pool rewards info');
+      }
+      const rewardsInfo = rewardsInfoResult.result;
+      const serializedAssets = assetsResult.result.map((asset) => ({
+        ...asset,
+        underlyingDecimals: asset.underlyingDecimals.toString(),
+        underlyingBalance: asset.underlyingBalance.toString(),
+        supplyRatePerBlock: asset.supplyRatePerBlock.toString(),
+        borrowRatePerBlock: asset.borrowRatePerBlock.toString(),
+        totalSupply: asset.totalSupply.toString(),
+        totalBorrow: asset.totalBorrow.toString(),
+        supplyBalance: asset.supplyBalance.toString(),
+        borrowBalance: asset.borrowBalance.toString(),
+        liquidity: asset.liquidity.toString(),
+        exchangeRate: asset.exchangeRate.toString(),
+        underlyingPrice: asset.underlyingPrice.toString(),
+        collateralFactor: asset.collateralFactor.toString(),
+        reserveFactor: asset.reserveFactor.toString(),
+        adminFee: asset.adminFee.toString(),
+        ionicFee: asset.ionicFee.toString(),
+        rewards: rewardsInfo
+          .find((reward) => reward.market === asset.cToken)
+          ?.rewardsInfo.filter((reward) => reward.formattedAPR > 0n)
+          .map((reward) => ({
+            rewardToken: reward.rewardToken,
+            apy: reward.formattedAPR.toString(),
+          })),
+      }));
+      positions.pools.push({
+        name: pool.name,
+        comptroller: pool.comptroller,
+        assets: serializedAssets,
+        healthFactor: healthFactor.toString(),
+      });
+    }
+    return positions;
+  }
+
   async supply(
     chain: Chain,
     request: PoolOperationRequestDto,
@@ -67,12 +152,7 @@ export class IonicService {
       );
     }
 
-    const chainConfig = getChainConfig(chain);
-    const publicClient = createPublicClient({
-      chain: chainConfig,
-      transport: http(),
-    });
-
+    const publicClient = this.chainService.getPublicClient(chain);
     const poolInfo = marketData[0];
 
     const formattedAmount = formatDecimal(request.call_data.amount);
@@ -90,7 +170,7 @@ export class IonicService {
     const feeData = await publicClient.estimateFeesPerGas();
 
     return {
-      chainId: chainConfig.id,
+      chainId: this.chainService.getChainId(chain),
       data,
       from: request.sender,
       to: poolInfo.pool_address,
@@ -117,12 +197,7 @@ export class IonicService {
       );
     }
 
-    const chainConfig = getChainConfig(chain);
-    const publicClient = createPublicClient({
-      chain: chainConfig,
-      transport: http(),
-    });
-
+    const publicClient = this.chainService.getPublicClient(chain);
     const poolInfo = marketData[0];
 
     const formattedAmount = formatDecimal(request.call_data.amount);
@@ -140,7 +215,7 @@ export class IonicService {
     const feeData = await publicClient.estimateFeesPerGas();
 
     return {
-      chainId: chainConfig.id,
+      chainId: this.chainService.getChainId(chain),
       data,
       from: request.sender,
       to: poolInfo.pool_address,
@@ -167,12 +242,7 @@ export class IonicService {
       );
     }
 
-    const chainConfig = getChainConfig(chain);
-    const publicClient = createPublicClient({
-      chain: chainConfig,
-      transport: http(),
-    });
-
+    const publicClient = this.chainService.getPublicClient(chain);
     const poolInfo = marketData[0];
 
     const formattedAmount = formatDecimal(request.call_data.amount);
@@ -190,7 +260,7 @@ export class IonicService {
     const feeData = await publicClient.estimateFeesPerGas();
 
     return {
-      chainId: chainConfig.id,
+      chainId: this.chainService.getChainId(chain),
       data,
       from: request.sender,
       to: poolInfo.pool_address,
@@ -217,12 +287,7 @@ export class IonicService {
       );
     }
 
-    const chainConfig = getChainConfig(chain);
-    const publicClient = createPublicClient({
-      chain: chainConfig,
-      transport: http(),
-    });
-
+    const publicClient = this.chainService.getPublicClient(chain);
     const poolInfo = marketData[0];
 
     const formattedAmount = formatDecimal(request.call_data.amount);
@@ -240,7 +305,7 @@ export class IonicService {
     const feeData = await publicClient.estimateFeesPerGas();
 
     return {
-      chainId: chainConfig.id,
+      chainId: this.chainService.getChainId(chain),
       data,
       from: request.sender,
       to: poolInfo.pool_address,

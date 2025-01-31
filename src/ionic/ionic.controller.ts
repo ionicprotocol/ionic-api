@@ -9,6 +9,8 @@ import {
 import { Chain } from '../common/types/chain.type';
 import { ChainValidationPipe } from '../common/pipes/chain-validation.pipe';
 import { MarketSearchQueryDto } from './dto/market-search.dto';
+import { PositionsResponseDto } from './dto/position.dto';
+import { Address } from 'viem';
 
 @ApiTags('ionic')
 @Controller('beta/v0/ionic')
@@ -27,6 +29,20 @@ export class IonicController {
     @Query() query: MarketSearchQueryDto,
   ): Promise<MarketsResponseDto> {
     return this.ionicService.getMarketInfo(chain, query);
+  }
+
+  @Get('positions/:chain/:address')
+  @ApiOperation({ summary: 'Get user positions in Ionic markets' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the user positions across all markets',
+    type: PositionsResponseDto,
+  })
+  async getPositions(
+    @Param('chain', ChainValidationPipe) chain: Chain,
+    @Param('address') address: Address,
+  ): Promise<PositionsResponseDto> {
+    return this.ionicService.getPositions(chain, address);
   }
 
   @Post('supply/:chain')
