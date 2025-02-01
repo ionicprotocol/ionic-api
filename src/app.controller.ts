@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
+import { NoLogging } from './common/decorators/no-logging.decorator';
 
 @ApiTags('health')
 @Controller()
@@ -8,6 +9,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
+  @NoLogging()
   @ApiOperation({ summary: 'Health check endpoint' })
   @ApiResponse({
     status: 200,

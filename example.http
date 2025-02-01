@@ -1,5 +1,6 @@
 @baseUrl = http://localhost:3000
 # @baseUrl = https://tx.ionic.ninja
+# @baseUrl = http://44.204.241.59:3000
 
 ### Health Check
 GET {{baseUrl}}/
@@ -47,7 +48,7 @@ Content-Type: application/json
 # Available chains: optimism, base, mode, bob, fraxtal, lisk, ink, superseed, worldchain, swell, soneium
 
 ### Get All Ionic Markets
-GET {{baseUrl}}/beta/v0/ionic/market/optimism
+GET {{baseUrl}}/beta/v0/ionic/market/
 Content-Type: application/json
 
 ### Get Ionic Market Info by Asset Symbol
