@@ -50,7 +50,7 @@ jobs:
       - name: Build Docker Image
         # working-directory: airdrop-backend
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_API_URL }}" > .env
           echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
           docker build --platform linux/amd64 -t api/ionic .
           docker images 
