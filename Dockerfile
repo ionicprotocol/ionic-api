@@ -3,6 +3,9 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+# Install pnpm globally
+RUN npm install -g pnpm
+
 # Define build arguments
 ARG SUPABASE_URL
 ARG SUPABASE_KEY
@@ -11,17 +14,20 @@ ARG SUPABASE_KEY
 ENV SUPABASE_URL=$SUPABASE_URL
 ENV SUPABASE_KEY=$SUPABASE_KEY
 
-# Copy package files, but don't fail if package-lock.json doesn't exist
-COPY package*.json ./
-RUN npm install
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
 
 COPY . .
-RUN npm run build
+RUN pnpm build
 
 # Production stage
 FROM node:20-alpine
 
 WORKDIR /app
+
+# Install pnpm globally
+RUN npm install -g pnpm
 
 # Define build arguments again for the production stage
 ARG SUPABASE_URL
@@ -32,8 +38,8 @@ ENV SUPABASE_URL=$SUPABASE_URL
 ENV SUPABASE_KEY=$SUPABASE_KEY
 
 # Copy package files
-COPY package*.json ./
-RUN npm install --only=production
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod
 
 COPY --from=builder /app/dist ./dist
 
