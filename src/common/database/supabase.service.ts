@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from './types/supabase.types';
@@ -11,10 +11,14 @@ type AssetMasterData = Tables['asset_master_data_test2']['Row'];
 @Injectable()
 export class SupabaseService {
   private readonly supabase: SupabaseClient<Database>;
+  private readonly logger = new Logger(SupabaseService.name);
 
   constructor(private configService: ConfigService) {
     const supabaseUrl = this.configService.getOrThrow<string>('SUPABASE_URL');
     const supabaseKey = this.configService.getOrThrow<string>('SUPABASE_KEY');
+
+    this.logger.log(`Supabase URL: ${supabaseUrl}`);
+    this.logger.log(`Supabase Key: ${supabaseKey}`);
 
     this.supabase = createClient<Database>(supabaseUrl, supabaseKey);
   }
