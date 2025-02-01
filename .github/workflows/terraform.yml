@@ -48,11 +48,11 @@ jobs:
           sudo usermod -aG docker $USER
     
       - name: Build Docker Image
-        # working-directory: airdrop-backend
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_API_URL }}" > .env
-          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
-          docker build --platform linux/amd64 -t api/ionic .
+          docker build --platform linux/amd64 \
+            --build-arg SUPABASE_URL=${{ secrets.SUPABASE_API_URL }} \
+            --build-arg SUPABASE_KEY=${{ secrets.SUPABASE_KEY }} \
+            -t api/ionic .
           docker images 
 
       - name: Push Image to ECR
