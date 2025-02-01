@@ -1,6 +1,10 @@
 @baseUrl = http://localhost:3000
 # @baseUrl = https://tx.ionic.ninja
 
+### TEST QUERY
+GET {{baseUrl}}/beta/v0/ionic/market
+
+
 ### Health Check
 GET {{baseUrl}}/
 

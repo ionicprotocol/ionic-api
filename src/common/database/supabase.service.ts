@@ -6,7 +6,7 @@ import { getChainId } from '../utils/chain.utils';
 import { MarketSearchQueryDto } from '../../ionic/dto/market-search.dto';
 
 type Tables = Database['public']['Tables'];
-type AssetMasterData = Tables['asset_master_data_test2']['Row'];
+type AssetMasterData = Tables['asset_master_data_main']['Row'];
 
 @Injectable()
 export class SupabaseService {
@@ -29,7 +29,7 @@ export class SupabaseService {
     let queryBuilder = this.supabase
       .from('asset_master_data_main')
       .select('*')
-      .limit(1); // for now limit 1 until table is fixed
+      .order('timestamp', { ascending: false });
 
     // Apply chain filter if provided
     if (query.chain) {
@@ -68,6 +68,22 @@ export class SupabaseService {
       throw error;
     }
 
-    return data || [];
+    // Group data by pool_address to get latest data for each pool
+    const latestPoolData = data.reduce<Record<string, AssetMasterData>>(
+      (acc, curr) => {
+        const key = `${curr.chain_id}-${curr.pool_address}-${curr.underlying_symbol}`;
+        if (!acc[key] || curr.timestamp > acc[key].timestamp) {
+          acc[key] = curr;
+        }
+        return acc;
+      },
+      {},
+    );
+
+    console.log(
+      '🚀 ~ SupabaseService ~ Object.values(latestPoolData):',
+      Object.values(latestPoolData),
+    );
+    return Object.values(latestPoolData);
   }
 }
