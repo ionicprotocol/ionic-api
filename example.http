@@ -1,6 +1,5 @@
 @baseUrl = http://localhost:3000
 # @baseUrl = https://tx.ionic.ninja
-# @baseUrl = http://44.204.241.59:3000
 
 ### Health Check
 GET {{baseUrl}}/
