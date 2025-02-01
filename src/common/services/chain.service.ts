@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { Chain } from '../types/chain.type';
 import { getChainConfig } from '../utils/chain.utils';
 import { PublicClient, createPublicClient, http } from 'viem';
-import { type Chain as ViemChain } from 'viem/chains';
 
 @Injectable()
 export class ChainService {
@@ -27,7 +26,7 @@ export class ChainService {
 
   private createPublicClient(chain: Chain): PublicClient {
     const chainConfig = getChainConfig(chain);
-    const rpcUrl = this.getRpcUrl(chain, chainConfig);
+    const rpcUrl = this.getRpcUrl(chain);
 
     return createPublicClient({
       chain: chainConfig,
@@ -35,9 +34,9 @@ export class ChainService {
     });
   }
 
-  private getRpcUrl(chain: Chain, chainConfig: ViemChain): string | undefined {
+  private getRpcUrl(chain: Chain): string | undefined {
     const envKey = `${chain.toUpperCase()}_RPC_URL`;
     const customRpcUrl = this.configService.get<string>(envKey);
-    return customRpcUrl || chainConfig.rpcUrls.default.http[0];
+    return customRpcUrl;
   }
 }
