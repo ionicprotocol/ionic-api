@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { MorphoModule } from './morpho/morpho.module';
 import { IonicModule } from './ionic/ionic.module';
 import { DatabaseModule } from './common/database/database.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -13,5 +15,7 @@ import { DatabaseModule } from './common/database/database.module';
     MorphoModule,
     IonicModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

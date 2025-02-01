@@ -1,4 +1,9 @@
 @baseUrl = http://localhost:3000
+# @baseUrl = https://tx.ionic.ninja
+
+### Health Check
+GET {{baseUrl}}/
+
 
 ### Get Morpho Position
 GET {{baseUrl}}/beta/v0/morpho/position/base/0x144bf18d6bf4c59602548a825034f73bf1d20177fc5f975fc69d5a5eba929b45/0x1155b614971f16758C92c4890eD338C9e3ede6b7
@@ -58,7 +63,7 @@ GET {{baseUrl}}/beta/v0/ionic/market/optimism?poolAddress=0x12345678901234567890
 Content-Type: application/json
 
 ### Get Ionic Market Info by Underlying Symbol
-GET {{baseUrl}}/beta/v0/ionic/market?underlyingSymbol=uBTC
+GET {{baseUrl}}/beta/v0/ionic/positions/base/0x1155b614971f16758C92c4890eD338C9e3ede6b7
 Content-Type: application/json
 
 ### Get User Positions in Ionic Markets
