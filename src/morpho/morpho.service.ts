@@ -47,8 +47,8 @@ export class MorphoService {
               borrowBalance: '0',
               borrowBalanceUsd: '0',
               collateralFactor: position.market.lltv,
-              supplyApy: '0',
-              borrowApy: '0',
+              supplyApy: 0,
+              borrowApy: 0,
               underlyingPriceUsd: position.market.collateralAsset.priceUsd,
               totalSupply: position.market.state.collateralAssets,
               totalSupplyUsd: position.market.state.collateralAssetsUsd,
@@ -59,7 +59,7 @@ export class MorphoService {
               rewards: position.market.state.rewards.map((reward) => ({
                 rewardToken: reward.asset.address,
                 rewardSymbol: reward.asset.symbol,
-                apy: reward.supplyApr,
+                apy: Number(reward.supplyApr) * 100,
               })),
             },
             // borrow
@@ -71,8 +71,8 @@ export class MorphoService {
               borrowBalance: position.borrowAssets,
               borrowBalanceUsd: position.borrowAssetsUsd,
               collateralFactor: position.market.lltv,
-              supplyApy: '0',
-              borrowApy: position.market.state.borrowApy,
+              supplyApy: 0,
+              borrowApy: Number(position.market.state.borrowApy) * 100,
               underlyingPriceUsd: position.market.loanAsset.priceUsd,
               totalSupply: position.market.state.borrowAssets,
               totalSupplyUsd: position.market.state.borrowAssetsUsd,
@@ -83,7 +83,7 @@ export class MorphoService {
               rewards: position.market.state.rewards.map((reward) => ({
                 rewardToken: reward.asset.address,
                 rewardSymbol: reward.asset.symbol,
-                apy: reward.borrowApr,
+                apy: Number(reward.borrowApr) * 100,
               })),
             },
           ],
@@ -124,23 +124,23 @@ export class MorphoService {
             healthFactor: position.healthFactor?.toString() ?? '0',
             assets: [
               {
-                underlyingSymbol: '', // Not available from SDK
-                underlyingDecimals: '18', // Default to 18, should be fetched from token contract
+                underlyingSymbol: '',
+                underlyingDecimals: '18',
                 supplyBalance: position.supplyAssets?.toString() ?? '0',
-                supplyBalanceUsd: '0', // Not available from SDK
+                supplyBalanceUsd: '0',
                 borrowBalance: position.borrowAssets?.toString() ?? '0',
-                borrowBalanceUsd: '0', // Not available from SDK
+                borrowBalanceUsd: '0',
                 collateralFactor: position.market.params.lltv.toString(),
-                supplyApy: '0', // Not available from SDK
-                borrowApy: '0', // Not available from SDK
+                supplyApy: 0,
+                borrowApy: 0,
                 underlyingPriceUsd: position.market.price?.toString() ?? '0',
                 totalSupply: position.market.totalSupplyAssets.toString(),
-                totalSupplyUsd: '0', // Not available from SDK
+                totalSupplyUsd: '0',
                 totalBorrow: position.market.totalBorrowAssets.toString(),
-                totalBorrowUsd: '0', // Not available from SDK
-                liquidity: '0', // Not available from SDK
-                liquidityUsd: '0', // Not available from SDK
-                rewards: [], // Not available from SDK
+                totalBorrowUsd: '0',
+                liquidity: '0',
+                liquidityUsd: '0',
+                rewards: [],
               },
             ],
           },

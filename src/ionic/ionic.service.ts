@@ -9,12 +9,16 @@ import { Address, encodeFunctionData, formatUnits, parseUnits } from 'viem';
 import { SupabaseService } from '../common/database/supabase.service';
 import { formatDecimal } from 'src/common/utils/number.utils';
 import { IonicPoolABI } from './abi/pool';
-import { MarketSearchQueryDto } from './dto/market-search.dto';
+import { MarketSearchQueryDto } from '../common/dto/market-search.dto';
 import { ChainService } from '../common/services/chain.service';
-import { PositionsResponseDto } from './dto/position.dto';
 import { ADDRESSES } from './constants/addresses';
 import { poolLensAbi } from './abi/poolLens';
 import { flywheelLensRouterAbi } from './abi/flywheelLensRouter';
+import {
+  AssetPositionDto,
+  PositionsResponseDto,
+} from '../common/dto/position.dto';
+import { PriceFeedService } from 'src/common/services/price-feed.service';
 
 function ratePerBlockToAPY(ratePerBlock: bigint, blocksPerMin: number): number {
   const blocksPerDay = blocksPerMin * 60 * 24;
@@ -29,6 +33,7 @@ export class IonicService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly chainService: ChainService,
+    private readonly priceFeedService: PriceFeedService,
   ) {}
 
   async getMarketInfo(
@@ -92,7 +97,7 @@ export class IonicService {
     const [, pools] = result.result;
     console.log('🚀 ~ IonicService ~ pools:', pools);
     const positions: PositionsResponseDto = {
-      pools: [],
+      positions: { pools: [] },
     };
     for (const pool of pools) {
       let healthFactor = 0n;
@@ -125,35 +130,78 @@ export class IonicService {
         throw new Error('Failed to get pool rewards info');
       }
       const rewardsInfo = rewardsInfoResult.result;
-      const serializedAssets = assetsResult.result.map((asset) => ({
-        ...asset,
-        underlyingDecimals: asset.underlyingDecimals.toString(),
-        underlyingBalance: asset.underlyingBalance.toString(),
-        supplyApy: ratePerBlockToAPY(asset.supplyRatePerBlock, 30).toString(),
-        borrowApy: ratePerBlockToAPY(asset.borrowRatePerBlock, 30).toString(),
-        totalSupply: asset.totalSupply.toString(),
-        totalBorrow: asset.totalBorrow.toString(),
-        supplyBalance: asset.supplyBalance.toString(),
-        borrowBalance: asset.borrowBalance.toString(),
-        liquidity: asset.liquidity.toString(),
-        exchangeRate: asset.exchangeRate.toString(),
-        underlyingPrice: asset.underlyingPrice.toString(),
-        collateralFactor: asset.collateralFactor.toString(),
-        reserveFactor: asset.reserveFactor.toString(),
-        adminFee: asset.adminFee.toString(),
-        ionicFee: asset.ionicFee.toString(),
-        rewards: rewardsInfo
-          .find((reward) => reward.market === asset.cToken)
-          ?.rewardsInfo.filter((reward) => reward.formattedAPR > 0n)
-          .map((reward) => ({
-            rewardToken: reward.rewardToken,
-            apy: formatUnits(reward.formattedAPR, 18 - 2),
-          })),
-      }));
-      positions.pools.push({
+      const ethUsdPrice = await this.priceFeedService.getEthUsdPrice();
+      positions.positions.pools.push({
         name: pool.name,
-        comptroller: pool.comptroller,
-        assets: serializedAssets,
+        poolId: pool.comptroller,
+        assets: assetsResult.result.map((asset) => {
+          const borrowBalanceNative =
+            Number(
+              formatUnits(
+                asset.borrowBalance,
+                Number(asset.underlyingDecimals),
+              ),
+            ) * Number(formatUnits(asset.underlyingPrice, 18));
+          const borrowBalanceUsd = borrowBalanceNative * ethUsdPrice;
+
+          const supplyBalanceNative =
+            Number(
+              formatUnits(
+                asset.supplyBalance,
+                Number(asset.underlyingDecimals),
+              ),
+            ) * Number(formatUnits(asset.underlyingPrice, 18));
+          const supplyBalanceUsd = supplyBalanceNative * ethUsdPrice;
+
+          const totalSupplyNative =
+            Number(
+              formatUnits(asset.totalSupply, Number(asset.underlyingDecimals)),
+            ) * Number(formatUnits(asset.underlyingPrice, 18));
+
+          const totalSupplyUsd = totalSupplyNative * ethUsdPrice;
+          const totalBorrowNative =
+            Number(
+              formatUnits(asset.totalBorrow, Number(asset.underlyingDecimals)),
+            ) * Number(formatUnits(asset.underlyingPrice, 18));
+          const totalBorrowUsd = totalBorrowNative * ethUsdPrice;
+
+          const liquidityNative =
+            Number(
+              formatUnits(asset.liquidity, Number(asset.underlyingDecimals)),
+            ) * Number(formatUnits(asset.underlyingPrice, 18));
+          const liquidityUsd = liquidityNative * ethUsdPrice;
+
+          return {
+            underlyingPriceUsd: formatUnits(asset.underlyingPrice, 18),
+            underlyingSymbol: asset.underlyingSymbol,
+            underlyingDecimals: asset.underlyingDecimals.toString(),
+            underlyingBalance: asset.underlyingBalance.toString(),
+            supplyApy: ratePerBlockToAPY(asset.supplyRatePerBlock, 30),
+            borrowApy: ratePerBlockToAPY(asset.borrowRatePerBlock, 30),
+            totalSupply: asset.totalSupply.toString(),
+            totalBorrow: asset.totalBorrow.toString(),
+            supplyBalance: asset.supplyBalance.toString(),
+            borrowBalance: asset.borrowBalance.toString(),
+            liquidity: asset.liquidity.toString(),
+            collateralFactor: asset.collateralFactor.toString(),
+            reserveFactor: asset.reserveFactor.toString(),
+            adminFee: asset.adminFee.toString(),
+            ionicFee: asset.ionicFee.toString(),
+            borrowBalanceUsd: borrowBalanceUsd.toString(),
+            supplyBalanceUsd: supplyBalanceUsd.toString(),
+            totalSupplyUsd: totalSupplyUsd.toString(),
+            totalBorrowUsd: totalBorrowUsd.toString(),
+            liquidityUsd: liquidityUsd.toString(),
+            rewards: rewardsInfo
+              .find((reward) => reward.market === asset.cToken)
+              ?.rewardsInfo.filter((reward) => reward.formattedAPR > 0n)
+              .map((reward) => ({
+                rewardToken: reward.rewardToken,
+                apy: Number(formatUnits(reward.formattedAPR, 18 - 2)),
+                rewardSymbol: '',
+              })),
+          } as AssetPositionDto;
+        }),
         healthFactor: healthFactor.toString(),
       });
     }

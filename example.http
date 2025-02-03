@@ -255,4 +255,214 @@ Content-Type: application/json
 #       }
 #     }
 #   ]
-# } 
+# }
+
+#######################
+### Portfolio API
+#######################
+
+### Get User Portfolio Across All Chains
+GET {{baseUrl}}/beta/v0/portfolio/0x1155b614971f16758C92c4890eD338C9e3ede6b7
+Content-Type: application/json
+
+# Example Response:
+# {
+#   "total_value_usd": 2500.75,
+#   "total_supply_usd": 3500.50,
+#   "total_borrow_usd": 1000.25,
+#   "protocols": [
+#     {
+#       "protocol": "Ionic",
+#       "total_supply_usd": 2000.50,
+#       "total_borrow_usd": 600.25,
+#       "net_value_usd": 1400.25,
+#       "positions": {
+#         "base": [
+#           {
+#             "asset": "WETH",
+#             "supply_balance": "0.5",
+#             "supply_balance_usd": 800.50,
+#             "borrow_balance": "0.2",
+#             "borrow_balance_usd": 300.25,
+#             "health_factor": "1.5"
+#           }
+#         ],
+#         "mode": [
+#           {
+#             "asset": "WETH",
+#             "supply_balance": "0.8",
+#             "supply_balance_usd": 1200.00,
+#             "borrow_balance": "0.2",
+#             "borrow_balance_usd": 300.00,
+#             "health_factor": "2.0"
+#           }
+#         ]
+#       }
+#     },
+#     {
+#       "protocol": "Morpho",
+#       "total_supply_usd": 1500.00,
+#       "total_borrow_usd": 400.00,
+#       "net_value_usd": 1100.00,
+#       "positions": {
+#         "base": [
+#           {
+#             "asset": "WETH",
+#             "supply_balance": "0.4",
+#             "supply_balance_usd": 600.00,
+#             "borrow_balance": "0.1",
+#             "borrow_balance_usd": 150.00,
+#             "health_factor": "2.5"
+#           }
+#         ],
+#         "mode": [
+#           {
+#             "asset": "WETH",
+#             "supply_balance": "0.6",
+#             "supply_balance_usd": 900.00,
+#             "borrow_balance": "0.17",
+#             "borrow_balance_usd": 250.00,
+#             "health_factor": "2.2"
+#           }
+#         ]
+#       }
+#     }
+#   ]
+# }
+
+### Get User Portfolio by Chain
+GET {{baseUrl}}/beta/v0/portfolio/0x1155b614971f16758C92c4890eD338C9e3ede6b7/mode
+Content-Type: application/json
+
+# Example Response:
+# {
+#   "total_value_usd": 1000.50,
+#   "total_supply_usd": 1500.75,
+#   "total_borrow_usd": 500.25,
+#   "protocols": [
+#     {
+#       "protocol": "Ionic",
+#       "total_supply_usd": 800.50,
+#       "total_borrow_usd": 300.25,
+#       "net_value_usd": 500.25,
+#       "positions": {
+#         "base": [
+#           {
+#             "asset": "WETH",
+#             "supply_balance": "0.5",
+#             "supply_balance_usd": 800.50,
+#             "borrow_balance": "0.2",
+#             "borrow_balance_usd": 300.25,
+#             "health_factor": "1.5"
+#           }
+#         ]
+#       }
+#     }
+#   ]
+# }
+
+#######################
+### Morpho API
+#######################
+
+### Get All Morpho Markets
+GET {{baseUrl}}/beta/v0/morpho/market/base
+Content-Type: application/json
+
+### Get Morpho Market Info by Market ID
+GET {{baseUrl}}/beta/v0/morpho/market/base?marketId=0x144bf18d6bf4c59602548a825034f73bf1d20177fc5f975fc69d5a5eba929b45
+Content-Type: application/json
+
+### Get Morpho Market Info by Borrow Token Symbol
+GET {{baseUrl}}/beta/v0/morpho/market/base?borrowTokenSymbol=WETH
+Content-Type: application/json
+
+### Get Morpho Market Info by Collateral Token Symbol
+GET {{baseUrl}}/beta/v0/morpho/market/base?collateralTokenSymbol=wsuperOETHb
+Content-Type: application/json
+
+### Get All Morpho Positions
+GET {{baseUrl}}/beta/v0/morpho/positions/base/0x1155b614971f16758C92c4890eD338C9e3ede6b7
+Content-Type: application/json
+
+### Get Morpho Position
+GET {{baseUrl}}/beta/v0/morpho/position/base/0x144bf18d6bf4c59602548a825034f73bf1d20177fc5f975fc69d5a5eba929b45/0x1155b614971f16758C92c4890eD338C9e3ede6b7
+Content-Type: application/json
+
+#######################
+### Ionic API
+#######################
+
+### Get All Ionic Markets
+GET {{baseUrl}}/beta/v0/ionic/market/
+Content-Type: application/json
+
+### Get Ionic Market Info by Asset Symbol
+GET {{baseUrl}}/beta/v0/ionic/market/optimism?asset=WETH
+Content-Type: application/json
+
+### Get Ionic Market Info by Market Address
+GET {{baseUrl}}/beta/v0/ionic/market/optimism?address=0x1234567890123456789012345678901234567890
+Content-Type: application/json
+
+### Get Ionic Market Info by Pool Address
+GET {{baseUrl}}/beta/v0/ionic/market/optimism?poolAddress=0x1234567890123456789012345678901234567890
+Content-Type: application/json
+
+### Get User Positions in Ionic Markets
+GET {{baseUrl}}/beta/v0/ionic/positions/base/0x1155b614971f16758C92c4890eD338C9e3ede6b7
+Content-Type: application/json
+
+### Supply to Ionic Pool
+POST {{baseUrl}}/beta/v0/ionic/supply/optimism
+Content-Type: application/json
+
+{
+  "sender": "0x1234567890123456789012345678901234567890",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 1.5,
+    "on_behalf_of": "0x1234567890123456789012345678901234567890"
+  }
+}
+
+### Withdraw from Ionic Pool
+POST {{baseUrl}}/beta/v0/ionic/withdraw/optimism
+Content-Type: application/json
+
+{
+  "sender": "0x1234567890123456789012345678901234567890",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 1.0,
+    "on_behalf_of": "0x1234567890123456789012345678901234567890"
+  }
+}
+
+### Borrow from Ionic Pool
+POST {{baseUrl}}/beta/v0/ionic/borrow/optimism
+Content-Type: application/json
+
+{
+  "sender": "0x1234567890123456789012345678901234567890",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 0.5,
+    "on_behalf_of": "0x1234567890123456789012345678901234567890"
+  }
+}
+
+### Repay to Ionic Pool
+POST {{baseUrl}}/beta/v0/ionic/repay/optimism
+Content-Type: application/json
+
+{
+  "sender": "0x1234567890123456789012345678901234567890",
+  "call_data": {
+    "asset": "WETH",
+    "amount": 0.5,
+    "on_behalf_of": "0x1234567890123456789012345678901234567890"
+  }
+}
+
+# Available chains: optimism, base, mode, bob, fraxtal, lisk, ink, superseed, worldchain, swell, soneium 

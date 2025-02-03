@@ -8,7 +8,7 @@ export class RewardDto {
   rewardSymbol: string;
 
   @ApiProperty({ description: 'APY for the reward', example: '5.2' })
-  apy: string;
+  apy: number;
 }
 
 export class AssetPositionDto {
@@ -46,10 +46,10 @@ export class AssetPositionDto {
   collateralFactor: string;
 
   @ApiProperty({ description: 'Supply APY', example: '3.5' })
-  supplyApy: string;
+  supplyApy: number;
 
   @ApiProperty({ description: 'Borrow APY', example: '4.2' })
-  borrowApy: string;
+  borrowApy: number;
 
   @ApiProperty({
     description: 'Price of underlying token in USD',

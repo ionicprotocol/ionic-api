@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from './types/supabase.types';
 import { getChainId } from '../utils/chain.utils';
-import { MarketSearchQueryDto } from '../../ionic/dto/market-search.dto';
+import { MarketSearchQueryDto } from '../dto/market-search.dto';
 
 type Tables = Database['public']['Tables'];
 type AssetMasterData = Tables['asset_master_data_main']['Row'];

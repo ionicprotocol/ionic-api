@@ -8,9 +8,9 @@ import {
 } from './dto/pool-operations.dto';
 import { Chain } from '../common/types/chain.type';
 import { ChainValidationPipe } from '../common/pipes/chain-validation.pipe';
-import { MarketSearchQueryDto } from './dto/market-search.dto';
-import { PositionsResponseDto } from './dto/position.dto';
+import { MarketSearchQueryDto } from '../common/dto/market-search.dto';
 import { Address } from 'viem';
+import { PositionsResponseDto } from 'src/common/dto/position.dto';
 
 @ApiTags('ionic')
 @Controller('beta/v0/ionic')

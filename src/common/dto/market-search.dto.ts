@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
-import { Chain } from '../../common/types/chain.type';
+import { Chain } from '../types/chain.type';
 
 export class MarketSearchQueryDto {
   @ApiProperty({

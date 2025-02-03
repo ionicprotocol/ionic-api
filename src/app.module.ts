@@ -6,6 +6,7 @@ import { DatabaseModule } from './common/database/database.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PortfolioModule } from './portfolio/portfolio.module';
+import { SharedModule } from './common/shared.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { PortfolioModule } from './portfolio/portfolio.module';
       isGlobal: true,
     }),
     DatabaseModule,
+    SharedModule,
     MorphoModule,
     IonicModule,
     PortfolioModule,
