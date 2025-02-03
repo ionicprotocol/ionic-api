@@ -261,73 +261,92 @@ Content-Type: application/json
 ### Portfolio API
 #######################
 
-### Get User Portfolio Across All Chains
+### Get Portfolio by Chain
+GET {{baseUrl}}/beta/v0/portfolio/0x1155b614971f16758C92c4890eD338C9e3ede6b7/base
+Content-Type: application/json
+
+# Example Response:
+# {
+#   "total_value_usd": 2250.75,
+#   "total_supply_usd": 3000.0,
+#   "total_borrow_usd": 750.25,
+#   "protocols": [
+#     {
+#       "protocol": "Ionic",
+#       "total_supply_usd": 1500.5,
+#       "total_borrow_usd": 500.5,
+#       "net_value_usd": 1000.0,
+#       "positions": [
+#         {
+#           "asset": "WETH",
+#           "supply_balance": "1.5",
+#           "supply_balance_usd": 1500.5,
+#           "borrow_balance": "0.5",
+#           "borrow_balance_usd": 500.5,
+#           "health_factor": "1.5"
+#         }
+#       ]
+#     }
+#   ]
+# }
+
+### Get Portfolio Across All Chains
 GET {{baseUrl}}/beta/v0/portfolio/0x1155b614971f16758C92c4890eD338C9e3ede6b7
 Content-Type: application/json
 
 # Example Response:
 # {
-#   "total_value_usd": 2500.75,
-#   "total_supply_usd": 3500.50,
-#   "total_borrow_usd": 1000.25,
-#   "protocols": [
-#     {
-#       "protocol": "Ionic",
-#       "total_supply_usd": 2000.50,
-#       "total_borrow_usd": 600.25,
-#       "net_value_usd": 1400.25,
-#       "positions": {
-#         "base": [
-#           {
-#             "asset": "WETH",
-#             "supply_balance": "0.5",
-#             "supply_balance_usd": 800.50,
-#             "borrow_balance": "0.2",
-#             "borrow_balance_usd": 300.25,
-#             "health_factor": "1.5"
-#           }
-#         ],
-#         "mode": [
-#           {
-#             "asset": "WETH",
-#             "supply_balance": "0.8",
-#             "supply_balance_usd": 1200.00,
-#             "borrow_balance": "0.2",
-#             "borrow_balance_usd": 300.00,
-#             "health_factor": "2.0"
-#           }
-#         ]
-#       }
+#   "total_value_usd": 4501.5,
+#   "total_supply_usd": 6000.0,
+#   "total_borrow_usd": 1500.5,
+#   "positions": {
+#     "base": {
+#       "total_value_usd": 2250.75,
+#       "total_supply_usd": 3000.0,
+#       "total_borrow_usd": 750.25,
+#       "protocols": [
+#         {
+#           "protocol": "Ionic",
+#           "total_supply_usd": 1500.5,
+#           "total_borrow_usd": 500.5,
+#           "net_value_usd": 1000.0,
+#           "positions": [
+#             {
+#               "asset": "WETH",
+#               "supply_balance": "1.5",
+#               "supply_balance_usd": 1500.5,
+#               "borrow_balance": "0.5",
+#               "borrow_balance_usd": 500.5,
+#               "health_factor": "1.5"
+#             }
+#           ]
+#         }
+#       ]
 #     },
-#     {
-#       "protocol": "Morpho",
-#       "total_supply_usd": 1500.00,
-#       "total_borrow_usd": 400.00,
-#       "net_value_usd": 1100.00,
-#       "positions": {
-#         "base": [
-#           {
-#             "asset": "WETH",
-#             "supply_balance": "0.4",
-#             "supply_balance_usd": 600.00,
-#             "borrow_balance": "0.1",
-#             "borrow_balance_usd": 150.00,
-#             "health_factor": "2.5"
-#           }
-#         ],
-#         "mode": [
-#           {
-#             "asset": "WETH",
-#             "supply_balance": "0.6",
-#             "supply_balance_usd": 900.00,
-#             "borrow_balance": "0.17",
-#             "borrow_balance_usd": 250.00,
-#             "health_factor": "2.2"
-#           }
-#         ]
-#       }
+#     "mode": {
+#       "total_value_usd": 2250.75,
+#       "total_supply_usd": 3000.0,
+#       "total_borrow_usd": 750.25,
+#       "protocols": [
+#         {
+#           "protocol": "Morpho",
+#           "total_supply_usd": 1500.5,
+#           "total_borrow_usd": 500.5,
+#           "net_value_usd": 1000.0,
+#           "positions": [
+#             {
+#               "asset": "WETH",
+#               "supply_balance": "1.5",
+#               "supply_balance_usd": 1500.5,
+#               "borrow_balance": "0.5",
+#               "borrow_balance_usd": 500.5,
+#               "health_factor": "1.5"
+#             }
+#           ]
+#         }
+#       ]
 #     }
-#   ]
+#   }
 # }
 
 ### Get User Portfolio by Chain

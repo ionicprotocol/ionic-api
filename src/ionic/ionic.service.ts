@@ -1,24 +1,33 @@
+// External dependencies
 import { Injectable, Logger } from '@nestjs/common';
+import { Address, encodeFunctionData, formatUnits, parseUnits } from 'viem';
+
+// Services
+import { SupabaseService } from '../common/database/supabase.service';
+import { ChainService } from '../common/services/chain.service';
+import { PriceFeedService } from '../common/services/price-feed.service';
+
+// DTOs and types
 import { Chain } from '../common/types/chain.type';
 import { MarketsResponseDto, MarketInfoDto } from './dto/market.dto';
 import {
   PoolOperationRequestDto,
   PoolOperationResponseDto,
 } from './dto/pool-operations.dto';
-import { Address, encodeFunctionData, formatUnits, parseUnits } from 'viem';
-import { SupabaseService } from '../common/database/supabase.service';
-import { formatDecimal } from 'src/common/utils/number.utils';
-import { IonicPoolABI } from './abi/pool';
 import { MarketSearchQueryDto } from '../common/dto/market-search.dto';
-import { ChainService } from '../common/services/chain.service';
-import { ADDRESSES } from './constants/addresses';
-import { poolLensAbi } from './abi/poolLens';
-import { flywheelLensRouterAbi } from './abi/flywheelLensRouter';
 import {
   AssetPositionDto,
   PositionsResponseDto,
 } from '../common/dto/position.dto';
-import { PriceFeedService } from 'src/common/services/price-feed.service';
+
+// Constants and ABIs
+import { ADDRESSES } from './constants/addresses';
+import { IonicPoolABI } from './abi/pool';
+import { poolLensAbi } from './abi/poolLens';
+import { flywheelLensRouterAbi } from './abi/flywheelLensRouter';
+
+// Utils
+import { formatDecimal } from '../common/utils/number.utils';
 
 function ratePerBlockToAPY(ratePerBlock: bigint, blocksPerMin: number): number {
   const blocksPerDay = blocksPerMin * 60 * 24;

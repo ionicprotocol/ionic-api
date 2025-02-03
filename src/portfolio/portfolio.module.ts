@@ -1,8 +1,13 @@
+// External dependencies
 import { Module } from '@nestjs/common';
-import { PortfolioController } from './portfolio.controller';
-import { PortfolioService } from './portfolio.service';
+
+// Modules
 import { IonicModule } from '../ionic/ionic.module';
 import { MorphoModule } from '../morpho/morpho.module';
+
+// Controllers and Services
+import { PortfolioController } from './portfolio.controller';
+import { PortfolioService } from './portfolio.service';
 
 @Module({
   imports: [IonicModule, MorphoModule],

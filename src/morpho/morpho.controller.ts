@@ -1,13 +1,20 @@
+// External dependencies
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { MorphoService } from './morpho.service';
-import { Chain } from '../common/types/chain.type';
-import { ChainValidationPipe } from '../common/pipes/chain-validation.pipe';
 import { MarketId } from '@morpho-org/blue-sdk';
 import { Address } from 'viem';
+
+// Services
+import { MorphoService } from './morpho.service';
+
+// DTOs and types
+import { Chain } from '../common/types/chain.type';
 import { MarketsResponseDto } from './dto/get-market-info.dto';
 import { MarketSearchQueryDto } from './dto/market-search.dto';
 import { PositionsResponseDto } from '../common/dto/position.dto';
+
+// Pipes
+import { ChainValidationPipe } from '../common/pipes/chain-validation.pipe';
 
 @ApiTags('morpho')
 @Controller('beta/v0/morpho')

@@ -1,17 +1,23 @@
+// External dependencies
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Chain } from '../common/types/chain.type';
-import { Address, createPublicClient } from 'viem';
+import { Address, createPublicClient, http } from 'viem';
 import { MarketId } from '@morpho-org/blue-sdk';
-import { getChainConfig, getChainId } from 'src/common/utils/chain.utils';
-import { http } from 'viem';
 import { AccrualPosition } from '@morpho-org/blue-sdk-viem/lib/augment/Position';
 import { Market } from '@morpho-org/blue-sdk-viem/lib/augment/Market';
 import { Time } from '@morpho-org/morpho-ts';
+
+// Services
+import { MorphoGraphQLService } from './services/graphql.service';
+
+// DTOs and types
+import { Chain } from '../common/types/chain.type';
 import { MarketsResponseDto } from './dto/get-market-info.dto';
 import { MarketSearchQueryDto } from './dto/market-search.dto';
-import { MARKETS } from './constants/markets';
-import { MorphoGraphQLService } from './services/graphql.service';
 import { PositionsResponseDto } from '../common/dto/position.dto';
+
+// Constants and utils
+import { MARKETS } from './constants/markets';
+import { getChainConfig, getChainId } from '../common/utils/chain.utils';
 
 @Injectable()
 export class MorphoService {

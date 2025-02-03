@@ -1,16 +1,23 @@
+// External dependencies
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Address } from 'viem';
+
+// Services
 import { IonicService } from './ionic.service';
+
+// DTOs and types
+import { Chain } from '../common/types/chain.type';
 import { MarketsResponseDto } from './dto/market.dto';
 import {
   PoolOperationRequestDto,
   PoolOperationResponseDto,
 } from './dto/pool-operations.dto';
-import { Chain } from '../common/types/chain.type';
-import { ChainValidationPipe } from '../common/pipes/chain-validation.pipe';
 import { MarketSearchQueryDto } from '../common/dto/market-search.dto';
-import { Address } from 'viem';
-import { PositionsResponseDto } from 'src/common/dto/position.dto';
+import { PositionsResponseDto } from '../common/dto/position.dto';
+
+// Pipes
+import { ChainValidationPipe } from '../common/pipes/chain-validation.pipe';
 
 @ApiTags('ionic')
 @Controller('beta/v0/ionic')
