@@ -213,4 +213,46 @@ Content-Type: application/json
 
 ### View API Documentation
 GET {{baseUrl}}/api-docs
-Content-Type: application/json 
+Content-Type: application/json
+
+### Get All Morpho Positions
+GET {{baseUrl}}/beta/v0/morpho/positions/base/0x1155b614971f16758C92c4890eD338C9e3ede6b7
+Content-Type: application/json
+
+# Example Response:
+# {
+#   "positions": [
+#     {
+#       "position": {
+#         "user": "0x1155b614971f16758C92c4890eD338C9e3ede6b7",
+#         "marketId": "0x144bf18d6bf4c59602548a825034f73bf1d20177fc5f975fc69d5a5eba929b45",
+#         "supplyShares": "1000000000000000000",
+#         "borrowShares": "500000000000000000",
+#         "supplyAssets": "1000000000000000000",
+#         "borrowAssets": "500000000000000000",
+#         "collateral": "1000000000000000000",
+#         "healthFactor": "1.5",
+#         "isHealthy": true,
+#         "market": {
+#           "params": {
+#             "collateralToken": "0x7FcD174E80f264448ebeE8c88a7C4476AAF58Ea6",
+#             "loanToken": "0x4200000000000000000000000000000000000006",
+#             "oracle": "0x...",
+#             "irm": "0x...",
+#             "lltv": "0.8",
+#             "id": "0x144bf18d6bf4c59602548a825034f73bf1d20177fc5f975fc69d5a5eba929b45",
+#             "liquidationIncentiveFactor": "0.1"
+#           },
+#           "totalSupplyAssets": "10000000000000000000",
+#           "totalBorrowAssets": "5000000000000000000",
+#           "totalSupplyShares": "10000000000000000000",
+#           "totalBorrowShares": "5000000000000000000",
+#           "lastUpdate": "1234567890",
+#           "fee": "0.001",
+#           "price": "1500000000000000000",
+#           "rateAtTarget": "0.05"
+#         }
+#       }
+#     }
+#   ]
+# } 

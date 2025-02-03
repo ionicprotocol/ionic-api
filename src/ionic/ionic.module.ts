@@ -8,5 +8,6 @@ import { ChainModule } from '../common/services/chain.module';
   imports: [DatabaseModule, ChainModule],
   controllers: [IonicController],
   providers: [IonicService],
+  exports: [IonicService],
 })
 export class IonicModule {}

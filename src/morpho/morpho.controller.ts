@@ -1,13 +1,13 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { MorphoService } from './morpho.service';
-import { PositionResponseDto } from './dto/get-position.dto';
 import { Chain } from '../common/types/chain.type';
 import { ChainValidationPipe } from '../common/pipes/chain-validation.pipe';
 import { MarketId } from '@morpho-org/blue-sdk';
 import { Address } from 'viem';
 import { MarketsResponseDto } from './dto/get-market-info.dto';
 import { MarketSearchQueryDto } from './dto/market-search.dto';
+import { PositionsResponseDto } from '../common/dto/position.dto';
 
 @ApiTags('morpho')
 @Controller('beta/v0/morpho')
@@ -15,17 +15,17 @@ export class MorphoController {
   constructor(private readonly morphoService: MorphoService) {}
 
   @Get('position/:chain/:marketId/:sender')
-  @ApiOperation({ summary: 'Get Morpho position details' })
+  @ApiOperation({ summary: 'Get position for a specific market' })
   @ApiResponse({
     status: 200,
     description: 'Returns the position details',
-    type: PositionResponseDto,
+    type: PositionsResponseDto,
   })
   async getPosition(
     @Param('chain', ChainValidationPipe) chain: Chain,
     @Param('marketId') marketId: MarketId,
     @Param('sender') sender: Address,
-  ): Promise<PositionResponseDto> {
+  ): Promise<PositionsResponseDto> {
     return this.morphoService.getPosition(chain, marketId, sender);
   }
 
@@ -41,5 +41,21 @@ export class MorphoController {
     @Query() query: MarketSearchQueryDto,
   ): Promise<MarketsResponseDto> {
     return this.morphoService.getMarketInfo(chain, query);
+  }
+
+  @Get('positions/:chain/:address')
+  @ApiOperation({
+    summary: 'Get all user positions in Morpho markets for a chain',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all user positions across Morpho markets',
+    type: PositionsResponseDto,
+  })
+  async getPositions(
+    @Param('chain', ChainValidationPipe) chain: Chain,
+    @Param('address') address: Address,
+  ): Promise<PositionsResponseDto> {
+    return this.morphoService.getPositions(chain, address);
   }
 }
