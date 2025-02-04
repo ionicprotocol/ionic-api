@@ -56,7 +56,7 @@ export class MorphoController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Returns all user positions across Morpho markets',
+    description: 'Returns all user positions across Morpho markets on a chain',
     type: PositionsResponseDto,
   })
   async getPositions(
