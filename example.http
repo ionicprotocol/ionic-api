@@ -258,124 +258,150 @@ Content-Type: application/json
 # }
 
 #######################
-### Portfolio API
+### Positions API
 #######################
 
-### Get Portfolio by Chain
-GET {{baseUrl}}/beta/v0/portfolio/0x1155b614971f16758C92c4890eD338C9e3ede6b7/base
+### Get Chain Positions
+GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7/base
 Content-Type: application/json
 
 # Example Response:
 # {
-#   "total_value_usd": 2250.75,
-#   "total_supply_usd": 3000.0,
-#   "total_borrow_usd": 750.25,
+#   "chain": "base",
+#   "totalValueUsd": 2250.75,
+#   "totalSupplyUsd": 3000.0,
+#   "totalBorrowUsd": 750.25,
 #   "protocols": [
 #     {
 #       "protocol": "Ionic",
-#       "total_supply_usd": 1500.5,
-#       "total_borrow_usd": 500.5,
-#       "net_value_usd": 1000.0,
-#       "positions": [
+#       "totalSupplyUsd": 1500.5,
+#       "totalBorrowUsd": 500.5,
+#       "netValueUsd": 1000.0,
+#       "pools": [
 #         {
-#           "asset": "WETH",
-#           "supply_balance": "1.5",
-#           "supply_balance_usd": 1500.5,
-#           "borrow_balance": "0.5",
-#           "borrow_balance_usd": 500.5,
-#           "health_factor": "1.5"
+#           "name": "Base Main Pool",
+#           "poolId": "0x1234567890123456789012345678901234567890",
+#           "assets": [
+#             {
+#               "asset": "WETH",
+#               "supplyBalance": "1.5",
+#               "supplyBalanceUsd": 1500.5,
+#               "borrowBalance": "0.5",
+#               "borrowBalanceUsd": 500.5
+#             }
+#           ],
+#           "healthFactor": "1.5"
 #         }
 #       ]
 #     }
 #   ]
 # }
 
-### Get Portfolio Across All Chains
-GET {{baseUrl}}/beta/v0/portfolio/0x1155b614971f16758C92c4890eD338C9e3ede6b7
+### Get All Chain Positions
+GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7
 Content-Type: application/json
 
 # Example Response:
 # {
-#   "total_value_usd": 4501.5,
-#   "total_supply_usd": 6000.0,
-#   "total_borrow_usd": 1500.5,
-#   "positions": {
-#     "base": {
-#       "total_value_usd": 2250.75,
-#       "total_supply_usd": 3000.0,
-#       "total_borrow_usd": 750.25,
+#   "totalValueUsd": 4501.5,
+#   "totalSupplyUsd": 6000.0,
+#   "totalBorrowUsd": 1500.5,
+#   "chains": [
+#     {
+#       "chain": "base",
+#       "totalValueUsd": 2250.75,
+#       "totalSupplyUsd": 3000.0,
+#       "totalBorrowUsd": 750.25,
 #       "protocols": [
 #         {
 #           "protocol": "Ionic",
-#           "total_supply_usd": 1500.5,
-#           "total_borrow_usd": 500.5,
-#           "net_value_usd": 1000.0,
-#           "positions": [
+#           "totalSupplyUsd": 1500.5,
+#           "totalBorrowUsd": 500.5,
+#           "netValueUsd": 1000.0,
+#           "pools": [
 #             {
-#               "asset": "WETH",
-#               "supply_balance": "1.5",
-#               "supply_balance_usd": 1500.5,
-#               "borrow_balance": "0.5",
-#               "borrow_balance_usd": 500.5,
-#               "health_factor": "1.5"
+#               "name": "Base Main Pool",
+#               "poolId": "0x1234567890123456789012345678901234567890",
+#               "assets": [
+#                 {
+#                   "asset": "WETH",
+#                   "supplyBalance": "1.5",
+#                   "supplyBalanceUsd": 1500.5,
+#                   "borrowBalance": "0.5",
+#                   "borrowBalanceUsd": 500.5
+#                 }
+#               ],
+#               "healthFactor": "1.5"
 #             }
 #           ]
 #         }
 #       ]
 #     },
-#     "mode": {
-#       "total_value_usd": 2250.75,
-#       "total_supply_usd": 3000.0,
-#       "total_borrow_usd": 750.25,
+#     {
+#       "chain": "mode",
+#       "totalValueUsd": 2250.75,
+#       "totalSupplyUsd": 3000.0,
+#       "totalBorrowUsd": 750.25,
 #       "protocols": [
 #         {
 #           "protocol": "Morpho",
-#           "total_supply_usd": 1500.5,
-#           "total_borrow_usd": 500.5,
-#           "net_value_usd": 1000.0,
-#           "positions": [
+#           "totalSupplyUsd": 1500.5,
+#           "totalBorrowUsd": 500.5,
+#           "netValueUsd": 1000.0,
+#           "pools": [
 #             {
-#               "asset": "WETH",
-#               "supply_balance": "1.5",
-#               "supply_balance_usd": 1500.5,
-#               "borrow_balance": "0.5",
-#               "borrow_balance_usd": 500.5,
-#               "health_factor": "1.5"
+#               "name": "Mode Main Pool",
+#               "poolId": "0x1234567890123456789012345678901234567890",
+#               "assets": [
+#                 {
+#                   "asset": "WETH",
+#                   "supplyBalance": "1.5",
+#                   "supplyBalanceUsd": 1500.5,
+#                   "borrowBalance": "0.5",
+#                   "borrowBalanceUsd": 500.5
+#                 }
+#               ],
+#               "healthFactor": "1.5"
 #             }
 #           ]
 #         }
 #       ]
 #     }
-#   }
+#   ]
 # }
 
-### Get User Portfolio by Chain
-GET {{baseUrl}}/beta/v0/portfolio/0x1155b614971f16758C92c4890eD338C9e3ede6b7/mode
+### Get User Chain Positions
+GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7/mode
 Content-Type: application/json
 
 # Example Response:
 # {
-#   "total_value_usd": 1000.50,
-#   "total_supply_usd": 1500.75,
-#   "total_borrow_usd": 500.25,
+#   "chain": "mode",
+#   "totalValueUsd": 1000.50,
+#   "totalSupplyUsd": 1500.75,
+#   "totalBorrowUsd": 500.25,
 #   "protocols": [
 #     {
 #       "protocol": "Ionic",
-#       "total_supply_usd": 800.50,
-#       "total_borrow_usd": 300.25,
-#       "net_value_usd": 500.25,
-#       "positions": {
-#         "base": [
-#           {
-#             "asset": "WETH",
-#             "supply_balance": "0.5",
-#             "supply_balance_usd": 800.50,
-#             "borrow_balance": "0.2",
-#             "borrow_balance_usd": 300.25,
-#             "health_factor": "1.5"
-#           }
-#         ]
-#       }
+#       "totalSupplyUsd": 800.50,
+#       "totalBorrowUsd": 300.25,
+#       "netValueUsd": 500.25,
+#       "pools": [
+#         {
+#           "name": "Mode Main Pool",
+#           "poolId": "0x1234567890123456789012345678901234567890",
+#           "assets": [
+#             {
+#               "asset": "WETH",
+#               "supplyBalance": "0.5",
+#               "supplyBalanceUsd": 800.50,
+#               "borrowBalance": "0.2",
+#               "borrowBalanceUsd": 300.25
+#             }
+#           ],
+#           "healthFactor": "1.5"
+#         }
+#       ]
 #     }
 #   ]
 # }

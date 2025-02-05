@@ -211,7 +211,7 @@ export class IonicService {
               })),
           } as AssetPositionDto;
         }),
-        healthFactor: healthFactor.toString(),
+        healthFactor: formatUnits(healthFactor, 18),
       });
     }
     return positions;

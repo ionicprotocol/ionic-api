@@ -5,7 +5,7 @@ import { IonicModule } from './ionic/ionic.module';
 import { DatabaseModule } from './common/database/database.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PortfolioModule } from './portfolio/portfolio.module';
+import { PositionsModule } from './positions/positions.module';
 import { SharedModule } from './common/shared.module';
 
 @Module({
@@ -17,7 +17,7 @@ import { SharedModule } from './common/shared.module';
     SharedModule,
     MorphoModule,
     IonicModule,
-    PortfolioModule,
+    PositionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
 // Types
 import { Chain } from '../types/chain.type';
 
-export class PositionDto {
+export class AssetDto {
   @ApiProperty({
     description: 'Asset symbol',
     example: 'WETH',
@@ -15,31 +15,51 @@ export class PositionDto {
     description: 'Supply balance in native units',
     example: '1.5',
   })
-  supply_balance: string;
+  supplyBalance: string;
 
   @ApiProperty({
     description: 'Supply balance in USD',
     example: 1500.5,
   })
-  supply_balance_usd: number;
+  supplyBalanceUsd: number;
 
   @ApiProperty({
     description: 'Borrow balance in native units',
     example: '0.5',
   })
-  borrow_balance: string;
+  borrowBalance: string;
 
   @ApiProperty({
     description: 'Borrow balance in USD',
     example: 750.25,
   })
-  borrow_balance_usd: number;
+  borrowBalanceUsd: number;
+}
+
+export class PoolDto {
+  @ApiProperty({
+    description: 'Pool name',
+    example: 'WETH',
+  })
+  name: string;
+
+  @ApiProperty({
+    description: 'Pool ID',
+    example: '0x123',
+  })
+  poolId: string;
+
+  @ApiProperty({
+    description: 'Detailed assets',
+    type: [AssetDto],
+  })
+  assets: AssetDto[];
 
   @ApiProperty({
     description: 'Health factor',
     example: '1.5',
   })
-  health_factor: string;
+  healthFactor: string;
 }
 
 export class ProtocolPositionDto {
@@ -54,45 +74,51 @@ export class ProtocolPositionDto {
     description: 'Total supply value in USD',
     example: 1500.5,
   })
-  total_supply_usd: number;
+  totalSupplyUsd: number;
 
   @ApiProperty({
     description: 'Total borrow value in USD',
     example: 750.25,
   })
-  total_borrow_usd: number;
+  totalBorrowUsd: number;
 
   @ApiProperty({
     description: 'Net value in USD (supply - borrow)',
     example: 750.25,
   })
-  net_value_usd: number;
+  netValueUsd: number;
 
   @ApiProperty({
     description: 'Detailed positions',
-    type: [PositionDto],
+    type: [PoolDto],
   })
-  positions: PositionDto[];
+  pools: PoolDto[];
 }
 
-export class ChainPortfolioDto {
+export class ChainPositionsDto {
+  @ApiProperty({
+    description: 'Chain name',
+    example: 'Base',
+  })
+  chain: Chain;
+
   @ApiProperty({
     description: 'Total value in USD for this chain',
     example: 2250.75,
   })
-  total_value_usd: number;
+  totalValueUsd: number;
 
   @ApiProperty({
     description: 'Total supply in USD for this chain',
     example: 3000.0,
   })
-  total_supply_usd: number;
+  totalSupplyUsd: number;
 
   @ApiProperty({
     description: 'Total borrow in USD for this chain',
     example: 750.25,
   })
-  total_borrow_usd: number;
+  totalBorrowUsd: number;
 
   @ApiProperty({
     description: 'Positions by protocol',
@@ -101,56 +127,65 @@ export class ChainPortfolioDto {
   protocols: ProtocolPositionDto[];
 }
 
-export class PortfolioResponseDto {
+export class PositionsResponseDto {
   @ApiProperty({
-    description: 'Total portfolio value in USD across all chains and protocols',
+    description: 'Total value in USD across all chains and protocols',
     example: 2250.75,
   })
-  total_value_usd: number;
+  totalValueUsd: number;
 
   @ApiProperty({
     description: 'Total supply value in USD across all chains and protocols',
     example: 3000.0,
   })
-  total_supply_usd: number;
+  totalSupplyUsd: number;
 
   @ApiProperty({
     description: 'Total borrow value in USD across all chains and protocols',
     example: 1500.5,
   })
-  total_borrow_usd: number;
+  totalBorrowUsd: number;
 
   @ApiProperty({
     description: 'Positions by chain',
     type: 'object',
     additionalProperties: {
-      $ref: '#/components/schemas/ChainPortfolioDto',
+      $ref: '#/components/schemas/ChainPositionsDto',
     },
     example: {
-      base: {
-        total_value_usd: 1500.5,
-        total_supply_usd: 2000.0,
-        total_borrow_usd: 500.5,
-        protocols: [
-          {
-            protocol: 'Ionic',
-            total_supply_usd: 1500.5,
-            total_borrow_usd: 500.5,
-            net_value_usd: 1000.0,
-            positions: [
-              {
-                asset: 'WETH',
-                supply_balance: '1.5',
-                supply_balance_usd: 1500.5,
-                borrow_balance: '0.5',
-                borrow_balance_usd: 500.5,
-                health_factor: '1.5',
-              },
-            ],
-          },
-        ],
-      },
+      chains: [
+        {
+          chain: 'Base',
+          totalValueUsd: 1500.5,
+          totalSupplyUsd: 2000.0,
+          totalBorrowUsd: 500.5,
+          protocols: [
+            {
+              protocol: 'Ionic',
+              totalSupplyUsd: 1500.5,
+              totalBorrowUsd: 500.5,
+              netValueUsd: 1000.0,
+              pools: [
+                {
+                  name: 'Base Main Pool',
+                  poolId: '0x123',
+                  assets: [
+                    {
+                      asset: 'WETH',
+                      supplyBalance: '1.5',
+                      supplyBalanceUsd: 1500.5,
+                      borrowBalance: '0.5',
+                      borrowBalanceUsd: 500.5,
+                    },
+                  ],
+                  healthFactor: '1.5',
+                },
+              ],
+            },
+          ],
+        },
+      ],
     },
   })
-  positions: Record<Chain, ChainPortfolioDto>;
+  chains: ChainPositionsDto[];
 }
