@@ -29,7 +29,7 @@ export class PositionsService {
     address: Address,
     chain: Chain,
     protocol?: Protocol,
-  ): Promise<ChainPositionsDto> {
+  ): Promise<ChainPositionsDto | null> {
     // Get positions from both protocols if no filter, or just the requested protocol
     const shouldGetIonic = !protocol || protocol === 'ionic';
     const shouldGetMorpho = !protocol || protocol === 'morpho';
@@ -68,15 +68,15 @@ export class PositionsService {
 
     const protocols: ProtocolPositionDto[] = [];
 
-    // Process Ionic positions if requested
-    if (shouldGetIonic) {
+    // Process Ionic positions if requested and has data
+    if (shouldGetIonic && ionicPositions.positions.pools.length > 0) {
       const ionicProtocolPosition: ProtocolPositionDto = {
         protocol: 'ionic',
         totalSupplyUsd: 0,
         totalBorrowUsd: 0,
         netValueUsd: 0,
         pools: ionicPositions.positions.pools.map((pool) => ({
-          name: pool.name || '',
+          name: pool.name,
           poolId: pool.poolId,
           assets: pool.assets.map((asset) => ({
             asset: asset.underlyingSymbol,
@@ -112,18 +112,24 @@ export class PositionsService {
         ionicProtocolPosition.totalSupplyUsd -
         ionicProtocolPosition.totalBorrowUsd;
 
-      protocols.push(ionicProtocolPosition);
+      // Only add if there are actual positions
+      if (
+        ionicProtocolPosition.totalSupplyUsd > 0 ||
+        ionicProtocolPosition.totalBorrowUsd > 0
+      ) {
+        protocols.push(ionicProtocolPosition);
+      }
     }
 
-    // Process Morpho positions if requested
-    if (shouldGetMorpho) {
+    // Process Morpho positions if requested and has data
+    if (shouldGetMorpho && morphoPositions.positions.pools.length > 0) {
       const morphoProtocolPosition: ProtocolPositionDto = {
         protocol: 'morpho',
         totalSupplyUsd: 0,
         totalBorrowUsd: 0,
         netValueUsd: 0,
         pools: morphoPositions.positions.pools.map((pool) => ({
-          name: '',
+          name: pool.name,
           poolId: pool.poolId,
           assets: pool.assets.map((asset) => ({
             asset: asset.underlyingSymbol,
@@ -161,7 +167,18 @@ export class PositionsService {
         morphoProtocolPosition.totalSupplyUsd -
         morphoProtocolPosition.totalBorrowUsd;
 
-      protocols.push(morphoProtocolPosition);
+      // Only add if there are actual positions
+      if (
+        morphoProtocolPosition.totalSupplyUsd > 0 ||
+        morphoProtocolPosition.totalBorrowUsd > 0
+      ) {
+        protocols.push(morphoProtocolPosition);
+      }
+    }
+
+    // If no protocols have positions, return null
+    if (protocols.length === 0) {
+      return null;
     }
 
     // Calculate chain totals
@@ -189,11 +206,26 @@ export class PositionsService {
     protocol?: Protocol,
   ): Promise<PositionsResponseDto> {
     // Get positions for each supported chain
-    const chains = await Promise.all(
+    const chainResults = await Promise.all(
       SUPPORTED_CHAINS.map((chain) =>
         this.getChainPositions(address, chain, protocol),
       ),
     );
+
+    // Filter out null results (chains with no positions)
+    const chains = chainResults.filter(
+      (result): result is ChainPositionsDto => result !== null,
+    );
+
+    // If no chains have positions, return empty response
+    if (chains.length === 0) {
+      return {
+        totalValueUsd: 0,
+        totalSupplyUsd: 0,
+        totalBorrowUsd: 0,
+        chains: [],
+      };
+    }
 
     // Calculate totals across all chains
     const totalValueUsd = chains.reduce(

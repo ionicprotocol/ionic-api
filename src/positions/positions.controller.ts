@@ -50,11 +50,22 @@ export class PositionsController {
     @Query('chain') chain?: Chain,
   ): Promise<PositionsResponseDto | ChainPositionsDto> {
     if (chain) {
-      return this.positionsService.getChainPositions(
+      const chainPositions = await this.positionsService.getChainPositions(
         address,
         chain,
         protocol?.toLowerCase(),
       );
+      // If no positions found for the chain, return empty response
+      if (!chainPositions) {
+        return {
+          chain,
+          totalValueUsd: 0,
+          totalSupplyUsd: 0,
+          totalBorrowUsd: 0,
+          protocols: [],
+        };
+      }
+      return chainPositions;
     }
     return this.positionsService.getAllPositions(
       address,

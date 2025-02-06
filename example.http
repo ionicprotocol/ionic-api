@@ -270,7 +270,7 @@ GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7?cha
 Content-Type: application/json
 
 ### Get Chain Positions (Morpho Only)
-GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7?chain=base&protocol=morpho
+GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7?protocol=morpho
 Content-Type: application/json
 
 # Example Response:
