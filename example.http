@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:3000
-# @baseUrl = https://tx.ionic.ninja
+# @baseUrl = https://api.godmode.ninja
 
 ### TEST QUERY
 GET {{baseUrl}}/beta/v0/ionic/market
@@ -261,8 +261,16 @@ Content-Type: application/json
 ### Positions API
 #######################
 
-### Get Chain Positions
-GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7/base
+### Get Chain Positions (All Protocols)
+GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7?chain=base
+Content-Type: application/json
+
+### Get Chain Positions (Ionic Only)
+GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7?chain=base&protocol=ionic
+Content-Type: application/json
+
+### Get Chain Positions (Morpho Only)
+GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7?chain=base&protocol=morpho
 Content-Type: application/json
 
 # Example Response:
@@ -297,8 +305,16 @@ Content-Type: application/json
 #   ]
 # }
 
-### Get All Chain Positions
+### Get All Chain Positions (All Protocols)
 GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7
+Content-Type: application/json
+
+### Get All Chain Positions (Ionic Only)
+GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7?protocol=ionic
+Content-Type: application/json
+
+### Get All Chain Positions (Morpho Only)
+GET {{baseUrl}}/beta/v0/positions/0x1155b614971f16758C92c4890eD338C9e3ede6b7?protocol=morpho
 Content-Type: application/json
 
 # Example Response:
@@ -321,36 +337,6 @@ Content-Type: application/json
 #           "pools": [
 #             {
 #               "name": "Base Main Pool",
-#               "poolId": "0x1234567890123456789012345678901234567890",
-#               "assets": [
-#                 {
-#                   "asset": "WETH",
-#                   "supplyBalance": "1.5",
-#                   "supplyBalanceUsd": 1500.5,
-#                   "borrowBalance": "0.5",
-#                   "borrowBalanceUsd": 500.5
-#                 }
-#               ],
-#               "healthFactor": "1.5"
-#             }
-#           ]
-#         }
-#       ]
-#     },
-#     {
-#       "chain": "mode",
-#       "totalValueUsd": 2250.75,
-#       "totalSupplyUsd": 3000.0,
-#       "totalBorrowUsd": 750.25,
-#       "protocols": [
-#         {
-#           "protocol": "Morpho",
-#           "totalSupplyUsd": 1500.5,
-#           "totalBorrowUsd": 500.5,
-#           "netValueUsd": 1000.0,
-#           "pools": [
-#             {
-#               "name": "Mode Main Pool",
 #               "poolId": "0x1234567890123456789012345678901234567890",
 #               "assets": [
 #                 {

@@ -40,7 +40,7 @@ export class MorphoService {
 
       const pools = user.marketPositions.map((position) => {
         return {
-          name: '',
+          name: `${position.market.collateralAsset.symbol} / ${position.market.loanAsset.symbol}`,
           poolId: position.market.uniqueKey,
           healthFactor: position.healthFactor,
           assets: [

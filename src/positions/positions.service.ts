@@ -14,6 +14,7 @@ import {
 } from '../common/dto/positions.dto';
 import { Chain } from '../common/types/chain.type';
 import { PositionsResponseDto as ProtocolPositionsResponseDto } from '../common/dto/position.dto';
+import { Protocol } from './positions.controller';
 
 const SUPPORTED_CHAINS: Chain[] = ['base', 'mode'];
 
@@ -27,121 +28,151 @@ export class PositionsService {
   async getChainPositions(
     address: Address,
     chain: Chain,
+    protocol?: Protocol,
   ): Promise<ChainPositionsDto> {
-    // Get positions from both protocols
-    const [ionicPositionsResult, morphoPositionsResult] =
-      await Promise.allSettled([
-        this.ionicService.getPositions(chain, address),
-        this.morphoService.getPositions(chain, address),
-      ]);
+    // Get positions from both protocols if no filter, or just the requested protocol
+    const shouldGetIonic = !protocol || protocol === 'ionic';
+    const shouldGetMorpho = !protocol || protocol === 'morpho';
+
+    const positionPromises: Promise<ProtocolPositionsResponseDto>[] = [];
+    if (shouldGetIonic) {
+      positionPromises.push(this.ionicService.getPositions(chain, address));
+    }
+    if (shouldGetMorpho) {
+      positionPromises.push(this.morphoService.getPositions(chain, address));
+    }
+
+    const positionResults = await Promise.allSettled(positionPromises);
 
     let ionicPositions: ProtocolPositionsResponseDto = {
       positions: { pools: [] },
     };
-    if (ionicPositionsResult.status === 'fulfilled') {
-      ionicPositions = ionicPositionsResult.value;
-    }
-
     let morphoPositions: ProtocolPositionsResponseDto = {
       positions: { pools: [] },
     };
-    if (morphoPositionsResult.status === 'fulfilled') {
-      morphoPositions = morphoPositionsResult.value;
+
+    let resultIndex = 0;
+    if (shouldGetIonic) {
+      const result = positionResults[resultIndex];
+      if (result.status === 'fulfilled') {
+        ionicPositions = result.value;
+      }
+      resultIndex++;
+    }
+    if (shouldGetMorpho) {
+      const result = positionResults[resultIndex];
+      if (result.status === 'fulfilled') {
+        morphoPositions = result.value;
+      }
     }
 
-    // Process Ionic positions
-    const ionicProtocolPosition: ProtocolPositionDto = {
-      protocol: 'Ionic',
-      totalSupplyUsd: 0,
-      totalBorrowUsd: 0,
-      netValueUsd: 0,
-      pools: ionicPositions.positions.pools.map((pool) => ({
-        name: pool.name,
-        poolId: pool.poolId,
-        assets: pool.assets.map((asset) => ({
-          asset: asset.underlyingSymbol,
-          supplyBalance: asset.supplyBalance,
-          supplyBalanceUsd: Number(asset.supplyBalanceUsd),
-          borrowBalance: asset.borrowBalance,
-          borrowBalanceUsd: Number(asset.borrowBalanceUsd),
+    const protocols: ProtocolPositionDto[] = [];
+
+    // Process Ionic positions if requested
+    if (shouldGetIonic) {
+      const ionicProtocolPosition: ProtocolPositionDto = {
+        protocol: 'ionic',
+        totalSupplyUsd: 0,
+        totalBorrowUsd: 0,
+        netValueUsd: 0,
+        pools: ionicPositions.positions.pools.map((pool) => ({
+          name: pool.name || '',
+          poolId: pool.poolId,
+          assets: pool.assets.map((asset) => ({
+            asset: asset.underlyingSymbol,
+            supplyBalance: asset.supplyBalance,
+            supplyBalanceUsd: Number(asset.supplyBalanceUsd),
+            borrowBalance: asset.borrowBalance,
+            borrowBalanceUsd: Number(asset.borrowBalanceUsd),
+          })),
+          healthFactor: pool.healthFactor,
         })),
-        healthFactor: pool.healthFactor,
-      })),
-    };
+      };
 
-    // Calculate Ionic totals
-    ionicProtocolPosition.totalSupplyUsd = ionicProtocolPosition.pools.reduce(
-      (sum, pool) =>
-        sum +
-        pool.assets.reduce(
-          (assetSum, asset) => assetSum + asset.supplyBalanceUsd,
-          0,
-        ),
-      0,
-    );
-    ionicProtocolPosition.totalBorrowUsd = ionicProtocolPosition.pools.reduce(
-      (sum, pool) =>
-        sum +
-        pool.assets.reduce(
-          (assetSum, asset) => assetSum + asset.borrowBalanceUsd,
-          0,
-        ),
-      0,
-    );
-    ionicProtocolPosition.netValueUsd =
-      ionicProtocolPosition.totalSupplyUsd -
-      ionicProtocolPosition.totalBorrowUsd;
+      // Calculate Ionic totals
+      ionicProtocolPosition.totalSupplyUsd = ionicProtocolPosition.pools.reduce(
+        (sum, pool) =>
+          sum +
+          pool.assets.reduce(
+            (assetSum, asset) => assetSum + asset.supplyBalanceUsd,
+            0,
+          ),
+        0,
+      );
+      ionicProtocolPosition.totalBorrowUsd = ionicProtocolPosition.pools.reduce(
+        (sum, pool) =>
+          sum +
+          pool.assets.reduce(
+            (assetSum, asset) => assetSum + asset.borrowBalanceUsd,
+            0,
+          ),
+        0,
+      );
+      ionicProtocolPosition.netValueUsd =
+        ionicProtocolPosition.totalSupplyUsd -
+        ionicProtocolPosition.totalBorrowUsd;
 
-    // Process Morpho positions
-    const morphoProtocolPosition: ProtocolPositionDto = {
-      protocol: 'Morpho',
-      totalSupplyUsd: 0,
-      totalBorrowUsd: 0,
-      netValueUsd: 0,
-      pools: morphoPositions.positions.pools.map((pool) => ({
-        name: pool.name || 'Main Pool',
-        poolId: pool.poolId,
-        assets: pool.assets.map((asset) => ({
-          asset: asset.underlyingSymbol,
-          supplyBalance: asset.supplyBalance,
-          supplyBalanceUsd: Number(asset.supplyBalanceUsd),
-          borrowBalance: asset.borrowBalance,
-          borrowBalanceUsd: Number(asset.borrowBalanceUsd),
+      protocols.push(ionicProtocolPosition);
+    }
+
+    // Process Morpho positions if requested
+    if (shouldGetMorpho) {
+      const morphoProtocolPosition: ProtocolPositionDto = {
+        protocol: 'morpho',
+        totalSupplyUsd: 0,
+        totalBorrowUsd: 0,
+        netValueUsd: 0,
+        pools: morphoPositions.positions.pools.map((pool) => ({
+          name: '',
+          poolId: pool.poolId,
+          assets: pool.assets.map((asset) => ({
+            asset: asset.underlyingSymbol,
+            supplyBalance: asset.supplyBalance,
+            supplyBalanceUsd: Number(asset.supplyBalanceUsd),
+            borrowBalance: asset.borrowBalance,
+            borrowBalanceUsd: Number(asset.borrowBalanceUsd),
+          })),
+          healthFactor: pool.healthFactor,
         })),
-        healthFactor: pool.healthFactor,
-      })),
-    };
+      };
 
-    // Calculate Morpho totals
-    morphoProtocolPosition.totalSupplyUsd = morphoProtocolPosition.pools.reduce(
-      (sum, pool) =>
-        sum +
-        pool.assets.reduce(
-          (assetSum, asset) => assetSum + asset.supplyBalanceUsd,
+      // Calculate Morpho totals
+      morphoProtocolPosition.totalSupplyUsd =
+        morphoProtocolPosition.pools.reduce(
+          (sum, pool) =>
+            sum +
+            pool.assets.reduce(
+              (assetSum, asset) => assetSum + asset.supplyBalanceUsd,
+              0,
+            ),
           0,
-        ),
-      0,
-    );
-    morphoProtocolPosition.totalBorrowUsd = morphoProtocolPosition.pools.reduce(
-      (sum, pool) =>
-        sum +
-        pool.assets.reduce(
-          (assetSum, asset) => assetSum + asset.borrowBalanceUsd,
+        );
+      morphoProtocolPosition.totalBorrowUsd =
+        morphoProtocolPosition.pools.reduce(
+          (sum, pool) =>
+            sum +
+            pool.assets.reduce(
+              (assetSum, asset) => assetSum + asset.borrowBalanceUsd,
+              0,
+            ),
           0,
-        ),
-      0,
-    );
-    morphoProtocolPosition.netValueUsd =
-      morphoProtocolPosition.totalSupplyUsd -
-      morphoProtocolPosition.totalBorrowUsd;
+        );
+      morphoProtocolPosition.netValueUsd =
+        morphoProtocolPosition.totalSupplyUsd -
+        morphoProtocolPosition.totalBorrowUsd;
+
+      protocols.push(morphoProtocolPosition);
+    }
 
     // Calculate chain totals
-    const totalSupplyUsd =
-      ionicProtocolPosition.totalSupplyUsd +
-      morphoProtocolPosition.totalSupplyUsd;
-    const totalBorrowUsd =
-      ionicProtocolPosition.totalBorrowUsd +
-      morphoProtocolPosition.totalBorrowUsd;
+    const totalSupplyUsd = protocols.reduce(
+      (sum, protocol) => sum + protocol.totalSupplyUsd,
+      0,
+    );
+    const totalBorrowUsd = protocols.reduce(
+      (sum, protocol) => sum + protocol.totalBorrowUsd,
+      0,
+    );
     const totalValueUsd = totalSupplyUsd - totalBorrowUsd;
 
     return {
@@ -149,14 +180,19 @@ export class PositionsService {
       totalValueUsd,
       totalSupplyUsd,
       totalBorrowUsd,
-      protocols: [ionicProtocolPosition, morphoProtocolPosition],
+      protocols,
     };
   }
 
-  async getAllPositions(address: Address): Promise<PositionsResponseDto> {
+  async getAllPositions(
+    address: Address,
+    protocol?: Protocol,
+  ): Promise<PositionsResponseDto> {
     // Get positions for each supported chain
     const chains = await Promise.all(
-      SUPPORTED_CHAINS.map((chain) => this.getChainPositions(address, chain)),
+      SUPPORTED_CHAINS.map((chain) =>
+        this.getChainPositions(address, chain, protocol),
+      ),
     );
 
     // Calculate totals across all chains
