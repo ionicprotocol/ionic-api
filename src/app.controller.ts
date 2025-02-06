@@ -16,7 +16,7 @@ export class AppController {
     description: 'Returns a welcome message indicating the API is running',
     schema: {
       type: 'string',
-      example: 'Welcome to Ionic API v2! 🌊',
+      example: 'Welcome to God Mode API! 🌊',
     },
   })
   getHello(): string {
