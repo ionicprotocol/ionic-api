@@ -1,6 +1,12 @@
 // External dependencies
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 import { Address } from 'viem';
 
 // Services
@@ -14,7 +20,7 @@ import {
 import { Chain } from '../common/types/chain.type';
 
 // Protocol definitions
-export const PROTOCOLS = ['ionic', 'morpho'];
+export const PROTOCOLS = ['ionic', 'morpho'] as const;
 export type Protocol = (typeof PROTOCOLS)[number];
 
 @ApiTags('positions')
@@ -24,36 +30,56 @@ export class PositionsController {
 
   @Get(':address')
   @ApiOperation({
-    summary: 'Get user positions for a specific chain or all chains',
+    summary: 'Get user positions across all chains or for a specific chain',
+    description: `
+Returns user positions filtered by optional chain and protocol parameters.
+- If chain is specified, returns positions for that chain only
+- If protocol is specified, returns positions for that protocol only
+- If neither is specified, returns all positions across all chains
+- Empty positions and chains with no positions are filtered out
+    `,
+  })
+  @ApiParam({
+    name: 'address',
+    description: 'Ethereum address to get positions for',
+    type: 'string',
+    example: '0x1155b614971f16758C92c4890eD338C9e3ede6b7',
+  })
+  @ApiQuery({
+    name: 'protocol',
+    required: false,
+    description: 'Filter positions by protocol',
+    enum: PROTOCOLS,
+    example: 'ionic',
+  })
+  @ApiQuery({
+    name: 'chain',
+    required: false,
+    description: 'Filter positions by chain',
+    enum: ['base', 'mode'],
+    example: 'base',
   })
   @ApiResponse({
     status: 200,
     description: 'Returns the user positions information',
     type: PositionsResponseDto,
-  })
-  @ApiQuery({
-    name: 'protocol',
-    required: false,
-    description: 'Filter positions by protocol (e.g., ionic, morpho)',
-    enum: PROTOCOLS,
-  })
-  @ApiQuery({
-    name: 'chain',
-    required: false,
-    description:
-      'Filter positions by chain (e.g., base, mode). If not provided, returns positions for all chains',
-    type: 'string',
+    schema: {
+      oneOf: [
+        { $ref: '#/components/schemas/ChainPositionsDto' },
+        { $ref: '#/components/schemas/PositionsResponseDto' },
+      ],
+    },
   })
   async getPositions(
     @Param('address') address: Address,
-    @Query('protocol') protocol?: string,
+    @Query('protocol') protocol?: Protocol,
     @Query('chain') chain?: Chain,
   ): Promise<PositionsResponseDto | ChainPositionsDto> {
     if (chain) {
       const chainPositions = await this.positionsService.getChainPositions(
         address,
         chain,
-        protocol?.toLowerCase(),
+        protocol,
       );
       // If no positions found for the chain, return empty response
       if (!chainPositions) {
@@ -67,9 +93,6 @@ export class PositionsController {
       }
       return chainPositions;
     }
-    return this.positionsService.getAllPositions(
-      address,
-      protocol?.toLowerCase(),
-    );
+    return this.positionsService.getAllPositions(address, protocol);
   }
 }
