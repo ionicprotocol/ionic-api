@@ -79,11 +79,6 @@ export class SupabaseService {
       },
       {},
     );
-
-    console.log(
-      '🚀 ~ SupabaseService ~ Object.values(latestPoolData):',
-      Object.values(latestPoolData),
-    );
     return Object.values(latestPoolData);
   }
 }

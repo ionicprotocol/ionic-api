@@ -8,7 +8,7 @@ import { IonicService } from './ionic.service';
 
 // DTOs and types
 import { Chain } from '../common/types/chain.type';
-import { MarketsResponseDto } from './dto/market.dto';
+import { MarketsResponseDto } from '../common/dto/market.dto';
 import {
   PoolOperationRequestDto,
   PoolOperationResponseDto,

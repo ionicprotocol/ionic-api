@@ -51,65 +51,24 @@ Content-Type: application/json
 # Available chains: optimism, base, mode, bob, fraxtal, lisk, ink, superseed, worldchain, swell, soneium
 
 ### Get All Ionic Markets
-GET {{baseUrl}}/beta/v0/ionic/market/
+GET {{baseUrl}}/beta/v0/ionic/market
 Content-Type: application/json
 
 ### Get Ionic Market Info by Asset Symbol
-GET {{baseUrl}}/beta/v0/ionic/market/optimism?asset=WETH
+GET {{baseUrl}}/beta/v0/ionic/market?chain=optimism&asset=WETH
 Content-Type: application/json
 
 ### Get Ionic Market Info by Market Address
-GET {{baseUrl}}/beta/v0/ionic/market/optimism?address=0x1234567890123456789012345678901234567890
+GET {{baseUrl}}/beta/v0/ionic/market?chain=optimism&address=0x1234567890123456789012345678901234567890
 Content-Type: application/json
 
 ### Get Ionic Market Info by Pool Address
-GET {{baseUrl}}/beta/v0/ionic/market/optimism?poolAddress=0x1234567890123456789012345678901234567890
-Content-Type: application/json
-
-### Get Ionic Market Info by Underlying Symbol
-GET {{baseUrl}}/beta/v0/ionic/positions/base/0x1155b614971f16758C92c4890eD338C9e3ede6b7
+GET {{baseUrl}}/beta/v0/ionic/market?chain=optimism&poolAddress=0x1234567890123456789012345678901234567890
 Content-Type: application/json
 
 ### Get User Positions in Ionic Markets
 GET {{baseUrl}}/beta/v0/ionic/positions/base/0x1155b614971f16758C92c4890eD338C9e3ede6b7
 Content-Type: application/json
-
-# Example Response:
-# {
-#   "pools": [
-#     {
-#       "name": "Main Pool",
-#       "comptroller": "0x1234567890123456789012345678901234567890",
-#       "assets": [
-#         {
-#           "underlyingDecimals": "18",
-#           "underlyingBalance": "1000000000000000000",
-#           "supplyRatePerBlock": "100000000000000",
-#           "borrowRatePerBlock": "200000000000000",
-#           "totalSupply": "10000000000000000000",
-#           "totalBorrow": "5000000000000000000",
-#           "supplyBalance": "1000000000000000000",
-#           "borrowBalance": "500000000000000000",
-#           "liquidity": "5000000000000000000",
-#           "exchangeRate": "200000000000000000",
-#           "underlyingPrice": "1500000000000000000",
-#           "collateralFactor": "750000000000000000",
-#           "reserveFactor": "100000000000000000",
-#           "adminFee": "50000000000000000",
-#           "ionicFee": "50000000000000000",
-#           "cToken": "0x1234567890123456789012345678901234567890",
-#           "rewards": [
-#             {
-#               "rewardToken": "0x1234567890123456789012345678901234567890",
-#               "apy": "100000000000000000"
-#             }
-#           ]
-#         }
-#       ],
-#       "healthFactor": "1500000000000000000"
-#     }
-#   ]
-# }
 
 ### Supply to Ionic Pool
 POST {{baseUrl}}/beta/v0/ionic/supply/optimism
@@ -396,20 +355,36 @@ Content-Type: application/json
 ### Morpho API
 #######################
 
-### Get All Morpho Markets
-GET {{baseUrl}}/beta/v0/morpho/market/base
+### Get Markets from All Chains
+GET {{baseUrl}}/beta/v0/morpho/market
 Content-Type: application/json
 
-### Get Morpho Market Info by Market ID
-GET {{baseUrl}}/beta/v0/morpho/market/base?marketId=0x144bf18d6bf4c59602548a825034f73bf1d20177fc5f975fc69d5a5eba929b45
+### Get Markets from Specific Chain
+GET {{baseUrl}}/beta/v0/morpho/market?chain=base
 Content-Type: application/json
 
-### Get Morpho Market Info by Borrow Token Symbol
-GET {{baseUrl}}/beta/v0/morpho/market/base?borrowTokenSymbol=WETH
+### Get Market Info by Market ID (All Chains)
+GET {{baseUrl}}/beta/v0/morpho/market?marketId=0x144bf18d6bf4c59602548a825034f73bf1d20177fc5f975fc69d5a5eba929b45
 Content-Type: application/json
 
-### Get Morpho Market Info by Collateral Token Symbol
-GET {{baseUrl}}/beta/v0/morpho/market/base?collateralTokenSymbol=wsuperOETHb
+### Get Market Info by Market ID (Specific Chain)
+GET {{baseUrl}}/beta/v0/morpho/market?chain=base&marketId=0x144bf18d6bf4c59602548a825034f73bf1d20177fc5f975fc69d5a5eba929b45
+Content-Type: application/json
+
+### Get Market Info by Borrow Token Symbol (All Chains)
+GET {{baseUrl}}/beta/v0/morpho/market?borrowTokenSymbol=WETH
+Content-Type: application/json
+
+### Get Market Info by Borrow Token Symbol (Specific Chain)
+GET {{baseUrl}}/beta/v0/morpho/market?chain=base&borrowTokenSymbol=WETH
+Content-Type: application/json
+
+### Get Market Info by Collateral Token Symbol (All Chains)
+GET {{baseUrl}}/beta/v0/morpho/market?collateralTokenSymbol=wsuperOETHb
+Content-Type: application/json
+
+### Get Market Info by Collateral Token Symbol (Specific Chain)
+GET {{baseUrl}}/beta/v0/morpho/market?chain=base&collateralTokenSymbol=wsuperOETHb
 Content-Type: application/json
 
 ### Get All Morpho Positions
@@ -425,19 +400,19 @@ Content-Type: application/json
 #######################
 
 ### Get All Ionic Markets
-GET {{baseUrl}}/beta/v0/ionic/market/
+GET {{baseUrl}}/beta/v0/ionic/market
 Content-Type: application/json
 
 ### Get Ionic Market Info by Asset Symbol
-GET {{baseUrl}}/beta/v0/ionic/market/optimism?asset=WETH
+GET {{baseUrl}}/beta/v0/ionic/market?chain=optimism&asset=WETH
 Content-Type: application/json
 
 ### Get Ionic Market Info by Market Address
-GET {{baseUrl}}/beta/v0/ionic/market/optimism?address=0x1234567890123456789012345678901234567890
+GET {{baseUrl}}/beta/v0/ionic/market?chain=optimism&address=0x1234567890123456789012345678901234567890
 Content-Type: application/json
 
 ### Get Ionic Market Info by Pool Address
-GET {{baseUrl}}/beta/v0/ionic/market/optimism?poolAddress=0x1234567890123456789012345678901234567890
+GET {{baseUrl}}/beta/v0/ionic/market?chain=optimism&poolAddress=0x1234567890123456789012345678901234567890
 Content-Type: application/json
 
 ### Get User Positions in Ionic Markets

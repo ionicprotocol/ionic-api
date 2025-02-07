@@ -1,23 +1,20 @@
 // External dependencies
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Address, createPublicClient, http } from 'viem';
-import { MarketId } from '@morpho-org/blue-sdk';
-import { AccrualPosition } from '@morpho-org/blue-sdk-viem/lib/augment/Position';
-import { Market } from '@morpho-org/blue-sdk-viem/lib/augment/Market';
-import { Time } from '@morpho-org/morpho-ts';
+import { Injectable, Logger } from '@nestjs/common';
+import { Address } from 'viem';
 
 // Services
 import { MorphoGraphQLService } from './services/graphql.service';
 
 // DTOs and types
 import { Chain } from '../common/types/chain.type';
-import { MarketsResponseDto } from './dto/get-market-info.dto';
+import { MarketsResponseDto, MarketPoolDto } from '../common/dto/market.dto';
 import { MarketSearchQueryDto } from './dto/market-search.dto';
 import { PositionsResponseDto } from '../common/dto/position.dto';
 
 // Constants and utils
-import { MARKETS } from './constants/markets';
-import { getChainConfig, getChainId } from '../common/utils/chain.utils';
+import { getChainId } from '../common/utils/chain.utils';
+
+const SUPPORTED_CHAINS: Chain[] = ['base', 'mode'];
 
 @Injectable()
 export class MorphoService {
@@ -103,122 +100,120 @@ export class MorphoService {
     }
   }
 
-  async getPosition(
-    chain: Chain,
-    marketId: MarketId,
-    address: Address,
-  ): Promise<PositionsResponseDto> {
-    const chainConfig = getChainConfig(chain);
-    const client = createPublicClient({
-      chain: chainConfig,
-      transport: http(),
-    });
-
-    const position = await AccrualPosition.fetch(address, marketId, client);
-
-    if (!position) {
-      throw new Error('Position not found');
-    }
-
-    // Convert the single position to match the common format
-    return {
-      positions: {
-        pools: [
-          {
-            name: '',
-            poolId: marketId,
-            healthFactor: position.healthFactor?.toString() ?? '0',
-            assets: [
-              {
-                underlyingSymbol: '',
-                underlyingDecimals: '18',
-                supplyBalance: position.supplyAssets?.toString() ?? '0',
-                supplyBalanceUsd: '0',
-                borrowBalance: position.borrowAssets?.toString() ?? '0',
-                borrowBalanceUsd: '0',
-                collateralFactor: position.market.params.lltv.toString(),
-                supplyApy: 0,
-                borrowApy: 0,
-                underlyingPriceUsd: position.market.price?.toString() ?? '0',
-                totalSupply: position.market.totalSupplyAssets.toString(),
-                totalSupplyUsd: '0',
-                totalBorrow: position.market.totalBorrowAssets.toString(),
-                totalBorrowUsd: '0',
-                liquidity: '0',
-                liquidityUsd: '0',
-                rewards: [],
-              },
-            ],
-          },
-        ],
-      },
-    };
-  }
-
   async getMarketInfo(
-    chain: Chain,
     query: MarketSearchQueryDto,
   ): Promise<MarketsResponseDto> {
-    const chainMarkets = MARKETS[chain];
-    if (!chainMarkets) {
-      throw new NotFoundException(`No markets found for chain ${chain}`);
-    }
+    try {
+      const chainsToSearch = query.chain ? [query.chain] : SUPPORTED_CHAINS;
+      const allPools: MarketPoolDto[] = [];
 
-    const filteredMarkets = chainMarkets.filter((m) => {
-      if (query.marketId && m.marketId !== query.marketId) {
-        return false;
-      }
-      if (
-        query.collateralToken &&
-        m.collateralToken !== query.collateralToken
-      ) {
-        return false;
-      }
-      if (
-        query.collateralTokenSymbol &&
-        m.collateralTokenSymbol !== query.collateralTokenSymbol
-      ) {
-        return false;
-      }
-      if (query.borrowToken && m.borrowToken !== query.borrowToken) {
-        return false;
-      }
-      if (
-        query.borrowTokenSymbol &&
-        m.borrowTokenSymbol !== query.borrowTokenSymbol
-      ) {
-        return false;
-      }
-      return true;
-    });
+      for (const chain of chainsToSearch) {
+        try {
+          const chainId = getChainId(chain);
+          const data = await this.graphqlService.getMarkets(chainId);
 
-    const chainConfig = getChainConfig(chain);
-    const client = createPublicClient({
-      chain: chainConfig,
-      transport: http(),
-    });
+          // Filter markets based on query parameters
+          const filteredMarkets = data.markets.items.filter((market) => {
+            if (query.marketId && market.uniqueKey !== query.marketId) {
+              return false;
+            }
+            if (
+              query.collateralToken &&
+              market.collateralAsset.address.toLowerCase() !==
+                query.collateralToken.toLowerCase()
+            ) {
+              return false;
+            }
+            if (
+              query.collateralTokenSymbol &&
+              market.collateralAsset.symbol.toLowerCase() !==
+                query.collateralTokenSymbol.toLowerCase()
+            ) {
+              return false;
+            }
+            if (
+              query.borrowToken &&
+              market.loanAsset.address.toLowerCase() !==
+                query.borrowToken.toLowerCase()
+            ) {
+              return false;
+            }
+            if (
+              query.borrowTokenSymbol &&
+              market.loanAsset.symbol.toLowerCase() !==
+                query.borrowTokenSymbol.toLowerCase()
+            ) {
+              return false;
+            }
+            return true;
+          });
 
-    const marketDataPromises = filteredMarkets.map(async (market) => {
-      const marketData = await Market.fetch(market.marketId, client);
-      const accruedMarket = marketData.accrueInterest(Time.timestamp());
+          // Map the filtered markets to pools
+          const pools = filteredMarkets.map((market) => ({
+            name: `${market.collateralAsset.symbol} / ${market.loanAsset.symbol}`,
+            poolId: market.uniqueKey,
+            protocol: 'morpho',
+            chain,
+            assets: [
+              // Collateral asset
+              {
+                underlyingSymbol: market.collateralAsset.symbol,
+                totalSupply: market.state.collateralAssets,
+                totalSupplyUsd: market.state.collateralAssetsUsd,
+                totalBorrow: '0', // Collateral can't be borrowed
+                totalBorrowUsd: '0',
+                liquidity: market.state.liquidityAssets,
+                liquidityUsd: market.state.liquidityAssetsUsd,
+                supplyApy: market.state.supplyApy,
+                borrowApy: '0',
+                isCollateral: true,
+                rewards: market.state.rewards.map((reward) => ({
+                  rewardToken: reward.asset.address,
+                  rewardSymbol: reward.asset.symbol,
+                  supplyApr: reward.supplyApr,
+                  borrowApr: '0',
+                })),
+                ltv: market.lltv,
+              },
+              // Borrow asset
+              {
+                underlyingSymbol: market.loanAsset.symbol,
+                totalSupply: market.state.supplyAssets,
+                totalSupplyUsd: market.state.supplyAssetsUsd,
+                totalBorrow: market.state.borrowAssets,
+                totalBorrowUsd: market.state.borrowAssetsUsd,
+                liquidity: market.state.liquidityAssets,
+                liquidityUsd: market.state.liquidityAssetsUsd,
+                supplyApy: '0', // Can't supply borrow asset
+                borrowApy: market.state.borrowApy,
+                isCollateral: false,
+                rewards: market.state.rewards.map((reward) => ({
+                  rewardToken: reward.asset.address,
+                  rewardSymbol: reward.asset.symbol,
+                  supplyApr: '0',
+                  borrowApr: reward.borrowApr,
+                })),
+                ltv: '0',
+              },
+            ],
+          }));
+
+          allPools.push(...pools);
+        } catch (error) {
+          this.logger.error(
+            `Failed to fetch market info for chain ${chain}:`,
+            error,
+          );
+          // Continue with other chains even if one fails
+        }
+      }
 
       return {
-        marketId: market.marketId,
-        collateralToken: market.collateralToken,
-        collateralTokenSymbol: market.collateralTokenSymbol,
-        borrowToken: market.borrowToken,
-        borrowTokenSymbol: market.borrowTokenSymbol,
-        utilization: (marketData.utilization ?? 0n).toString(),
-        liquidity: (marketData.liquidity ?? 0n).toString(),
-        apyAtTarget: (accruedMarket.apyAtTarget ?? 0n).toString(),
-        borrowApy: (accruedMarket.borrowApy ?? 0n).toString(),
-        totalSupplyAssets: (accruedMarket.totalSupplyAssets ?? 0n).toString(),
-        totalBorrowAssets: (accruedMarket.totalBorrowAssets ?? 0n).toString(),
+        pools: allPools,
       };
-    });
-
-    const markets = await Promise.all(marketDataPromises);
-
-    return { markets };
+    } catch (error) {
+      this.logger.error('Failed to fetch market info:', error);
+      throw new Error('Failed to fetch market information');
+    }
   }
 }

@@ -1,7 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
+import { Chain } from '../../common/types/chain.type';
 
 export class MarketSearchQueryDto {
+  @ApiProperty({
+    description: 'Chain to query',
+    example: 'base',
+    required: true,
+  })
+  chain: Chain;
+
   @ApiProperty({
     description: 'Market ID to search for',
     example:

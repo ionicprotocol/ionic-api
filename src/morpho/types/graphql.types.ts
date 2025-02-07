@@ -28,6 +28,9 @@ interface MarketState {
   collateralAssetsUsd: string;
   collateralAssets: string;
   utilization: string;
+  supplyApy: string;
+  supplyAssets: string;
+  supplyAssetsUsd: string;
   rewards: Reward[];
 }
 
@@ -57,4 +60,48 @@ interface User {
 
 export interface MorphoGraphQLResponse {
   userByAddress: User;
+}
+
+// Market query types
+export interface MarketQueryItem {
+  collateralAsset: {
+    address: string;
+    symbol: string;
+    priceUsd: string;
+  };
+  loanAsset: {
+    address: string;
+    symbol: string;
+    priceUsd: string;
+  };
+  lltv: string;
+  state: {
+    borrowApy: string;
+    borrowAssets: string;
+    borrowAssetsUsd: string;
+    collateralAssets: string;
+    collateralAssetsUsd: string;
+    supplyApy: string;
+    supplyAssets: string;
+    supplyAssetsUsd: string;
+    utilization: string;
+    liquidityAssets: string;
+    liquidityAssetsUsd: string;
+    rewards: {
+      asset: {
+        address: string;
+        symbol: string;
+        priceUsd: string;
+      };
+      supplyApr: string;
+      borrowApr: string;
+    }[];
+  };
+  uniqueKey: string;
+}
+
+export interface MarketQueryResponse {
+  markets: {
+    items: MarketQueryItem[];
+  };
 }

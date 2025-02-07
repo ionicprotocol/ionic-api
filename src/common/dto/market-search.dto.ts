@@ -4,28 +4,15 @@ import { Chain } from '../types/chain.type';
 
 export class MarketSearchQueryDto {
   @ApiProperty({
-    description: 'The blockchain network',
-    enum: [
-      'optimism',
-      'base',
-      'mode',
-      'bob',
-      'fraxtal',
-      'lisk',
-      'ink',
-      'superseed',
-      'worldchain',
-      'swell',
-      'soneium',
-    ],
-    example: 'optimism',
+    description: 'Chain to query',
+    example: 'base',
     required: false,
   })
   @IsOptional()
   chain?: Chain;
 
   @ApiProperty({
-    description: 'Asset symbol to search for',
+    description: 'Asset symbol',
     example: 'WETH',
     required: false,
   })
@@ -34,7 +21,7 @@ export class MarketSearchQueryDto {
   asset?: string;
 
   @ApiProperty({
-    description: 'Market (cToken) address to search for',
+    description: 'Market address',
     example: '0x1234567890123456789012345678901234567890',
     required: false,
   })
@@ -43,7 +30,7 @@ export class MarketSearchQueryDto {
   address?: string;
 
   @ApiProperty({
-    description: 'Pool address to search for',
+    description: 'Pool address',
     example: '0x1234567890123456789012345678901234567890',
     required: false,
   })

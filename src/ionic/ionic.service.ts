@@ -9,7 +9,6 @@ import { PriceFeedService } from '../common/services/price-feed.service';
 
 // DTOs and types
 import { Chain } from '../common/types/chain.type';
-import { MarketsResponseDto, MarketInfoDto } from './dto/market.dto';
 import {
   PoolOperationRequestDto,
   PoolOperationResponseDto,
@@ -19,6 +18,7 @@ import {
   AssetPositionDto,
   PositionsResponseDto,
 } from '../common/dto/position.dto';
+import { MarketsResponseDto, MarketPoolDto } from '../common/dto/market.dto';
 
 // Constants and ABIs
 import { ADDRESSES } from './constants/addresses';
@@ -28,6 +28,8 @@ import { flywheelLensRouterAbi } from './abi/flywheelLensRouter';
 
 // Utils
 import { formatDecimal } from '../common/utils/number.utils';
+
+const SUPPORTED_CHAINS: Chain[] = ['optimism', 'base', 'mode'];
 
 function ratePerBlockToAPY(ratePerBlock: bigint, blocksPerMin: number): number {
   const blocksPerDay = blocksPerMin * 60 * 24;
@@ -48,40 +50,63 @@ export class IonicService {
   async getMarketInfo(
     query: MarketSearchQueryDto,
   ): Promise<MarketsResponseDto> {
-    const marketData = await this.supabaseService.getAssetMasterData(query);
+    const chainsToSearch = query.chain ? [query.chain] : SUPPORTED_CHAINS;
+    const allPools: MarketPoolDto[] = [];
 
-    const markets: MarketInfoDto[] = marketData.map((data) => ({
-      address: data.ctoken_address,
-      pool_address: data.pool_address,
-      underlying_address: data.underlying_address,
-      underlying_name: data.underlying_name,
-      underlying_symbol: data.underlying_symbol,
-      decimals: data.decimals,
-      underlying_price: data.underlying_price ?? 0,
-      usd_price: data.usd_price ?? 0,
-      exchange_rate: data.exchange_rate ?? 0,
-      total_supply: data.total_supply ?? '0',
-      total_supply_usd: data.total_supply_usd ?? 0,
-      total_borrow: data.total_borrow ?? '0',
-      total_borrow_usd: data.total_borrow_usd ?? 0,
-      utilization_rate: data.utilization_rate ?? 0,
-      supply_apy: data.supply_apy ?? 0,
-      borrow_apy: data.borrow_apy ?? 0,
-      is_listed: data.is_listed ?? false,
-      collateral_factor: data.collateral_factor ?? 0,
-      reserve_factor: data.reserve_factor ?? 0,
-      borrow_cap: data.borrow_cap ?? '0',
-      supply_cap: data.supply_cap ?? '0',
-      is_borrow_paused: data.is_borrow_paused ?? false,
-      is_mint_paused: data.is_mint_paused ?? false,
-      reward_tokens: JSON.parse(data.reward_tokens ?? '[]'),
-      reward_apy_borrow: data.reward_apy_borrow?.toString() ?? '0',
-      reward_apy_supply: data.reward_apy_supply?.toString() ?? '0',
-      total_supply_apy: Number(data.total_supply_apy ?? 0),
-      total_borrow_apy: Number(data.total_borrow_apy ?? 0),
-    }));
+    for (const chain of chainsToSearch) {
+      try {
+        const chainQuery = { ...query, chain };
+        const marketData =
+          await this.supabaseService.getAssetMasterData(chainQuery);
 
-    return { markets };
+        // Group markets by pool address
+        const poolsMap = new Map<string, MarketPoolDto>();
+
+        for (const data of marketData) {
+          if (!poolsMap.has(data.pool_address)) {
+            poolsMap.set(data.pool_address, {
+              name: data.pool_address,
+              poolId: data.pool_address,
+              protocol: 'ionic',
+              chain,
+              assets: [],
+            });
+          }
+
+          const pool = poolsMap.get(data.pool_address)!;
+          pool.assets.push({
+            underlyingSymbol: data.underlying_symbol,
+            totalSupply: data.total_supply ?? '0',
+            totalSupplyUsd: (data.total_supply_usd ?? 0).toString(),
+            totalBorrow: data.total_borrow ?? '0',
+            totalBorrowUsd: (data.total_borrow_usd ?? 0).toString(),
+            liquidity: data.total_supply ?? '0',
+            liquidityUsd: (data.total_supply_usd ?? 0).toString(),
+            supplyApy: (data.supply_apy ?? 0).toString(),
+            borrowApy: (data.borrow_apy ?? 0).toString(),
+            ltv: (data.collateral_factor ?? 0).toString(),
+            isCollateral: true,
+            rewards: data.reward_tokens
+              ? JSON.parse(data.reward_tokens).map((token: any) => ({
+                  rewardToken: token.address,
+                  rewardSymbol: token.symbol,
+                  supplyApr: (data.reward_apy_supply ?? '0').toString(),
+                  borrowApr: (data.reward_apy_borrow ?? '0').toString(),
+                }))
+              : [],
+          });
+        }
+
+        const chainPools = Array.from(poolsMap.values());
+        allPools.push(...chainPools);
+      } catch (error) {
+        this.logger.error(`Error fetching market data for ${chain}:`, error);
+      }
+    }
+
+    return {
+      pools: allPools,
+    };
   }
 
   async getPositions(
