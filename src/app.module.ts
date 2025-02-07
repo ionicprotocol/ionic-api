@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PositionsModule } from './positions/positions.module';
 import { SharedModule } from './common/shared.module';
+import { MarketsModule } from './markets/markets.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { SharedModule } from './common/shared.module';
     MorphoModule,
     IonicModule,
     PositionsModule,
+    MarketsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

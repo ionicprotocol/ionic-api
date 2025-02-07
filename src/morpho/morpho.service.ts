@@ -7,12 +7,12 @@ import { MorphoGraphQLService } from './services/graphql.service';
 
 // DTOs and types
 import { Chain } from '../common/types/chain.type';
-import { MarketsResponseDto, MarketPoolDto } from '../common/dto/market.dto';
-import { MarketSearchQueryDto } from './dto/market-search.dto';
+import { MarketPoolDto, ProtocolPoolsDto } from '../common/dto/market.dto';
 import { PositionsResponseDto } from '../common/dto/position.dto';
 
 // Constants and utils
 import { getChainId } from '../common/utils/chain.utils';
+import { MarketSearchQueryDto } from 'src/common/dto/market-search.dto';
 
 const SUPPORTED_CHAINS: Chain[] = ['base', 'mode'];
 
@@ -100,9 +100,7 @@ export class MorphoService {
     }
   }
 
-  async getMarketInfo(
-    query: MarketSearchQueryDto,
-  ): Promise<MarketsResponseDto> {
+  async getMarketInfo(query: MarketSearchQueryDto): Promise<ProtocolPoolsDto> {
     try {
       const chainsToSearch = query.chain ? [query.chain] : SUPPORTED_CHAINS;
       const allPools: MarketPoolDto[] = [];
@@ -114,27 +112,13 @@ export class MorphoService {
 
           // Filter markets based on query parameters
           const filteredMarkets = data.markets.items.filter((market) => {
-            if (query.marketId && market.uniqueKey !== query.marketId) {
-              return false;
-            }
-            if (
-              query.collateralToken &&
-              market.collateralAsset.address.toLowerCase() !==
-                query.collateralToken.toLowerCase()
-            ) {
+            if (query.poolId && market.uniqueKey !== query.poolId) {
               return false;
             }
             if (
               query.collateralTokenSymbol &&
               market.collateralAsset.symbol.toLowerCase() !==
                 query.collateralTokenSymbol.toLowerCase()
-            ) {
-              return false;
-            }
-            if (
-              query.borrowToken &&
-              market.loanAsset.address.toLowerCase() !==
-                query.borrowToken.toLowerCase()
             ) {
               return false;
             }
@@ -152,8 +136,7 @@ export class MorphoService {
           const pools = filteredMarkets.map((market) => ({
             name: `${market.collateralAsset.symbol} / ${market.loanAsset.symbol}`,
             poolId: market.uniqueKey,
-            protocol: 'morpho',
-            chain,
+            totalValueUsd: Number(market.state.collateralAssetsUsd),
             assets: [
               // Collateral asset
               {
@@ -209,6 +192,7 @@ export class MorphoService {
       }
 
       return {
+        protocol: 'morpho',
         pools: allPools,
       };
     } catch (error) {

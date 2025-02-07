@@ -115,18 +115,10 @@ export class MarketPoolDto {
   poolId: string;
 
   @ApiProperty({
-    description: 'Protocol name',
-    example: 'ionic',
-    enum: ['ionic', 'morpho'],
+    description: 'Total value locked in USD',
+    example: 1000000,
   })
-  protocol: string;
-
-  @ApiProperty({
-    description: 'Chain name',
-    example: 'base',
-    enum: ['base', 'mode', 'optimism'],
-  })
-  chain: Chain;
+  totalValueUsd: number;
 
   @ApiProperty({
     description: 'Market assets',
@@ -135,10 +127,39 @@ export class MarketPoolDto {
   assets: MarketAssetDto[];
 }
 
-export class MarketsResponseDto {
+export class ProtocolPoolsDto {
   @ApiProperty({
-    description: 'Market pools',
+    description: 'Protocol name',
+    example: 'ionic',
+    enum: ['ionic', 'morpho'],
+  })
+  protocol: string;
+
+  @ApiProperty({
+    description: 'List of pools',
     type: [MarketPoolDto],
   })
   pools: MarketPoolDto[];
+}
+
+export class ChainMarketsDto {
+  @ApiProperty({
+    description: 'Chain name',
+    example: 'base',
+  })
+  chain: Chain;
+
+  @ApiProperty({
+    description: 'List of protocols',
+    type: [ProtocolPoolsDto],
+  })
+  protocols: ProtocolPoolsDto[];
+}
+
+export class AggregatedMarketsResponseDto {
+  @ApiProperty({
+    description: 'List of chains',
+    type: [ChainMarketsDto],
+  })
+  chains: ChainMarketsDto[];
 }

@@ -1,23 +1,37 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
-import { Chain } from '../types/chain.type';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+
+import { Protocol, PROTOCOLS } from '../../positions/positions.controller';
+
+const SUPPORTED_CHAINS = ['base', 'mode'] as const;
+type SupportedChain = (typeof SUPPORTED_CHAINS)[number];
 
 export class MarketSearchQueryDto {
   @ApiProperty({
-    description: 'Chain to query',
-    example: 'base',
+    description: 'Filter by chain',
+    enum: SUPPORTED_CHAINS,
     required: false,
   })
+  @IsEnum(SUPPORTED_CHAINS)
   @IsOptional()
-  chain?: Chain;
+  chain?: SupportedChain;
 
   @ApiProperty({
-    description: 'Asset symbol',
-    example: 'WETH',
+    description: 'Filter by protocol',
+    enum: PROTOCOLS,
     required: false,
   })
+  @IsEnum(PROTOCOLS)
   @IsOptional()
+  protocol?: Protocol;
+
+  @ApiProperty({
+    description: 'Filter by asset symbol (case-insensitive partial match)',
+    example: 'ETH',
+    required: false,
+  })
   @IsString()
+  @IsOptional()
   asset?: string;
 
   @ApiProperty({
@@ -30,13 +44,13 @@ export class MarketSearchQueryDto {
   address?: string;
 
   @ApiProperty({
-    description: 'Pool address',
+    description: 'Pool ID',
     example: '0x1234567890123456789012345678901234567890',
     required: false,
   })
   @IsOptional()
   @IsString()
-  poolAddress?: string;
+  poolId?: string;
 
   @ApiProperty({
     description: 'Underlying token address to search for',
@@ -45,23 +59,14 @@ export class MarketSearchQueryDto {
   })
   @IsOptional()
   @IsString()
-  underlyingAddress?: string;
+  collateralTokenSymbol?: string;
 
   @ApiProperty({
-    description: 'Underlying token name to search for',
-    example: 'Wrapped Ether',
+    description: 'Borrow token address to search for',
+    example: '0x1234567890123456789012345678901234567890',
     required: false,
   })
   @IsOptional()
   @IsString()
-  underlyingName?: string;
-
-  @ApiProperty({
-    description: 'Underlying token symbol to search for',
-    example: 'WETH',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  underlyingSymbol?: string;
+  borrowTokenSymbol?: string;
 }

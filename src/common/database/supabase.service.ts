@@ -37,8 +37,8 @@ export class SupabaseService {
     }
 
     // Apply filters with case-insensitive comparisons
-    if (query.asset || query.underlyingSymbol) {
-      const symbol = query.asset || query.underlyingSymbol;
+    if (query.asset || query.collateralTokenSymbol) {
+      const symbol = query.asset || query.collateralTokenSymbol;
       if (symbol) {
         queryBuilder = queryBuilder.ilike('underlying_symbol', symbol);
       }
@@ -46,19 +46,13 @@ export class SupabaseService {
     if (query.address) {
       queryBuilder = queryBuilder.ilike('ctoken_address', query.address);
     }
-    if (query.poolAddress) {
-      queryBuilder = queryBuilder.ilike('pool_address', query.poolAddress);
+    if (query.poolId) {
+      queryBuilder = queryBuilder.ilike('pool_address', query.poolId);
     }
-    if (query.underlyingAddress) {
+    if (query.borrowTokenSymbol) {
       queryBuilder = queryBuilder.ilike(
-        'underlying_address',
-        query.underlyingAddress,
-      );
-    }
-    if (query.underlyingName) {
-      queryBuilder = queryBuilder.ilike(
-        'underlying_name',
-        query.underlyingName,
+        'underlying_symbol',
+        query.borrowTokenSymbol,
       );
     }
 

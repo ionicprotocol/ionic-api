@@ -1,20 +1,16 @@
 // External dependencies
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Param, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Address } from 'viem';
 
 // Services
 import { IonicService } from './ionic.service';
 
 // DTOs and types
-import { Chain } from '../common/types/chain.type';
-import { MarketsResponseDto } from '../common/dto/market.dto';
 import {
   PoolOperationRequestDto,
   PoolOperationResponseDto,
 } from './dto/pool-operations.dto';
-import { MarketSearchQueryDto } from '../common/dto/market-search.dto';
-import { PositionsResponseDto } from '../common/dto/position.dto';
+import { SupportedChain } from './ionic.service';
 
 // Pipes
 import { ChainValidationPipe } from '../common/pipes/chain-validation.pipe';
@@ -24,33 +20,6 @@ import { ChainValidationPipe } from '../common/pipes/chain-validation.pipe';
 export class IonicController {
   constructor(private readonly ionicService: IonicService) {}
 
-  @Get('market')
-  @ApiOperation({ summary: 'Get Ionic market information' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns the market information',
-    type: MarketsResponseDto,
-  })
-  async getMarketInfo(
-    @Query() query: MarketSearchQueryDto,
-  ): Promise<MarketsResponseDto> {
-    return this.ionicService.getMarketInfo(query);
-  }
-
-  @Get('positions/:chain/:address')
-  @ApiOperation({ summary: 'Get user positions in Ionic markets' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns the user positions across all markets',
-    type: PositionsResponseDto,
-  })
-  async getPositions(
-    @Param('chain', ChainValidationPipe) chain: Chain,
-    @Param('address') address: Address,
-  ): Promise<PositionsResponseDto> {
-    return this.ionicService.getPositions(chain, address);
-  }
-
   @Post('supply/:chain')
   @ApiOperation({ summary: 'Supply to Ionic pool' })
   @ApiResponse({
@@ -59,7 +28,7 @@ export class IonicController {
     type: PoolOperationResponseDto,
   })
   async supply(
-    @Param('chain', ChainValidationPipe) chain: Chain,
+    @Param('chain', ChainValidationPipe) chain: SupportedChain,
     @Body() request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     return this.ionicService.supply(chain, request);
@@ -73,7 +42,7 @@ export class IonicController {
     type: PoolOperationResponseDto,
   })
   async withdraw(
-    @Param('chain', ChainValidationPipe) chain: Chain,
+    @Param('chain', ChainValidationPipe) chain: SupportedChain,
     @Body() request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     return this.ionicService.withdraw(chain, request);
@@ -87,7 +56,7 @@ export class IonicController {
     type: PoolOperationResponseDto,
   })
   async borrow(
-    @Param('chain', ChainValidationPipe) chain: Chain,
+    @Param('chain', ChainValidationPipe) chain: SupportedChain,
     @Body() request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     return this.ionicService.borrow(chain, request);
@@ -101,7 +70,7 @@ export class IonicController {
     type: PoolOperationResponseDto,
   })
   async repay(
-    @Param('chain', ChainValidationPipe) chain: Chain,
+    @Param('chain', ChainValidationPipe) chain: SupportedChain,
     @Body() request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     return this.ionicService.repay(chain, request);

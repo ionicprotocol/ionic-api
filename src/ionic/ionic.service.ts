@@ -18,7 +18,7 @@ import {
   AssetPositionDto,
   PositionsResponseDto,
 } from '../common/dto/position.dto';
-import { MarketsResponseDto, MarketPoolDto } from '../common/dto/market.dto';
+import { MarketPoolDto, ProtocolPoolsDto } from '../common/dto/market.dto';
 
 // Constants and ABIs
 import { ADDRESSES } from './constants/addresses';
@@ -29,7 +29,8 @@ import { flywheelLensRouterAbi } from './abi/flywheelLensRouter';
 // Utils
 import { formatDecimal } from '../common/utils/number.utils';
 
-const SUPPORTED_CHAINS: Chain[] = ['optimism', 'base', 'mode'];
+const SUPPORTED_CHAINS = ['base', 'mode'] as const;
+export type SupportedChain = (typeof SUPPORTED_CHAINS)[number];
 
 function ratePerBlockToAPY(ratePerBlock: bigint, blocksPerMin: number): number {
   const blocksPerDay = blocksPerMin * 60 * 24;
@@ -47,9 +48,7 @@ export class IonicService {
     private readonly priceFeedService: PriceFeedService,
   ) {}
 
-  async getMarketInfo(
-    query: MarketSearchQueryDto,
-  ): Promise<MarketsResponseDto> {
+  async getMarketInfo(query: MarketSearchQueryDto): Promise<ProtocolPoolsDto> {
     const chainsToSearch = query.chain ? [query.chain] : SUPPORTED_CHAINS;
     const allPools: MarketPoolDto[] = [];
 
@@ -67,8 +66,7 @@ export class IonicService {
             poolsMap.set(data.pool_address, {
               name: data.pool_address,
               poolId: data.pool_address,
-              protocol: 'ionic',
-              chain,
+              totalValueUsd: Number(data.total_supply_usd ?? 0),
               assets: [],
             });
           }
@@ -105,6 +103,7 @@ export class IonicService {
     }
 
     return {
+      protocol: 'ionic',
       pools: allPools,
     };
   }
@@ -243,7 +242,7 @@ export class IonicService {
   }
 
   async supply(
-    chain: Chain,
+    chain: SupportedChain,
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     const query: MarketSearchQueryDto = {
@@ -288,7 +287,7 @@ export class IonicService {
   }
 
   async withdraw(
-    chain: Chain,
+    chain: SupportedChain,
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     const query: MarketSearchQueryDto = {
@@ -333,7 +332,7 @@ export class IonicService {
   }
 
   async borrow(
-    chain: Chain,
+    chain: SupportedChain,
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     const query: MarketSearchQueryDto = {
@@ -378,7 +377,7 @@ export class IonicService {
   }
 
   async repay(
-    chain: Chain,
+    chain: SupportedChain,
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     const query: MarketSearchQueryDto = {
