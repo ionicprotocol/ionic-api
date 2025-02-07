@@ -246,7 +246,7 @@ export class IonicService {
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     const query: MarketSearchQueryDto = {
-      asset: request.call_data.asset,
+      collateralTokenSymbol: request.call_data.asset,
       chain,
     };
     const marketData = await this.supabaseService.getAssetMasterData(query);
@@ -291,7 +291,7 @@ export class IonicService {
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     const query: MarketSearchQueryDto = {
-      asset: request.call_data.asset,
+      collateralTokenSymbol: request.call_data.asset,
       chain,
     };
     const marketData = await this.supabaseService.getAssetMasterData(query);
@@ -336,7 +336,7 @@ export class IonicService {
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     const query: MarketSearchQueryDto = {
-      asset: request.call_data.asset,
+      collateralTokenSymbol: request.call_data.asset,
       chain,
     };
     const marketData = await this.supabaseService.getAssetMasterData(query);
@@ -381,7 +381,7 @@ export class IonicService {
     request: PoolOperationRequestDto,
   ): Promise<PoolOperationResponseDto> {
     const query: MarketSearchQueryDto = {
-      asset: request.call_data.asset,
+      collateralTokenSymbol: request.call_data.asset,
       chain,
     };
     const marketData = await this.supabaseService.getAssetMasterData(query);

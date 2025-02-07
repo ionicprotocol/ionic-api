@@ -26,24 +26,6 @@ export class MarketSearchQueryDto {
   protocol?: Protocol;
 
   @ApiProperty({
-    description: 'Filter by asset symbol (case-insensitive partial match)',
-    example: 'ETH',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  asset?: string;
-
-  @ApiProperty({
-    description: 'Market address',
-    example: '0x1234567890123456789012345678901234567890',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  address?: string;
-
-  @ApiProperty({
     description: 'Pool ID',
     example: '0x1234567890123456789012345678901234567890',
     required: false,
