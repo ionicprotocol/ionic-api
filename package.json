@@ -20,15 +20,15 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@eslint/js": "^9.19.0",
+    "@eslint/js": "^9.20.0",
     "@morpho-org/blue-sdk": "^2.3.0",
     "@morpho-org/blue-sdk-viem": "^2.2.1",
     "@morpho-org/morpho-ts": "^2.0.1",
     "@nestjs/axios": "^4.0.0",
-    "@nestjs/common": "^11.0.7",
+    "@nestjs/common": "^11.0.8",
     "@nestjs/config": "^4.0.0",
-    "@nestjs/core": "^11.0.7",
-    "@nestjs/platform-express": "^11.0.7",
+    "@nestjs/core": "^11.0.8",
+    "@nestjs/platform-express": "^11.0.8",
     "@nestjs/swagger": "^11.0.3",
     "@supabase/supabase-js": "^2.48.1",
     "axios": "^1.7.9",
@@ -40,19 +40,19 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "typescript-eslint": "^8.23.0",
-    "viem": "^2.22.22"
+    "viem": "^2.22.23"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.2",
     "@nestjs/schematics": "^11.0.0",
-    "@nestjs/testing": "^11.0.7",
+    "@nestjs/testing": "^11.0.8",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.1",
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.23.0",
     "@typescript-eslint/parser": "^8.23.0",
-    "eslint": "^9.19.0",
+    "eslint": "^9.20.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.3",
     "jest": "^29.7.0",
@@ -82,5 +82,5 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   },
-  "packageManager": "pnpm@10.2.0+sha512.0d27364e0139c6aadeed65ada153135e0ca96c8da42123bd50047f961339dc7a758fc2e944b428f52be570d1bd3372455c1c65fa2e7aa0bfbf931190f9552001"
+  "packageManager": "pnpm@10.2.1"
 }

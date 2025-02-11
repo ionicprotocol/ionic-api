@@ -26,8 +26,8 @@ export class MorphoGraphQLService {
     chainId: number,
   ): Promise<MorphoGraphQLResponse> {
     const query = `
-      query UserPositions($address: String!) {
-        userByAddress(address: $address) {
+      query User($address: String!, $chainId: Int) {
+        userByAddress(address: $address, chainId: $chainId) {
           address
           marketPositions {
             borrowAssets
@@ -82,6 +82,7 @@ export class MorphoGraphQLService {
 
     const variables = {
       address,
+      chainId,
     };
 
     try {

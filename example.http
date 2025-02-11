@@ -21,7 +21,7 @@ GET {{baseUrl}}/beta/v0/markets?chain=base
 Content-Type: application/json
 
 ### Get Markets by Asset
-GET {{baseUrl}}/beta/v0/markets?asset=ETH
+GET {{baseUrl}}/beta/v0/markets?collateralTokenSymbol=USDC
 Content-Type: application/json
 
 ### Get Markets with Combined Filters

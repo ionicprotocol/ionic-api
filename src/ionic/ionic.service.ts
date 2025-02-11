@@ -128,7 +128,6 @@ export class IonicService {
       throw new Error('Failed to get public pools');
     }
     const [, pools] = result.result;
-    console.log('🚀 ~ IonicService ~ pools:', pools);
     const positions: PositionsResponseDto = {
       positions: { pools: [] },
     };
@@ -153,16 +152,26 @@ export class IonicService {
       if (!assetsResult.result) {
         throw new Error('Failed to get pool assets');
       }
-      const rewardsInfoResult = await publicClient.simulateContract({
-        address: flywheelLensRouterAddress,
-        abi: flywheelLensRouterAbi,
-        functionName: 'getPoolMarketRewardsInfo',
-        args: [pool.comptroller],
-      });
-      if (!rewardsInfoResult.result) {
-        throw new Error('Failed to get pool rewards info');
+      let rewardsInfo: ReadonlyArray<{
+        market: Address;
+        rewardsInfo: ReadonlyArray<{
+          rewardToken: Address;
+          formattedAPR: bigint;
+        }>;
+      }> = [];
+      try {
+        const rewardsInfoResult = await publicClient.simulateContract({
+          address: flywheelLensRouterAddress,
+          abi: flywheelLensRouterAbi,
+          functionName: 'getPoolMarketRewardsInfo',
+          args: [pool.comptroller],
+        });
+        if (rewardsInfoResult.result) {
+          rewardsInfo = rewardsInfoResult.result;
+        }
+      } catch (error) {
+        this.logger.error('Error getting rewards info:', error);
       }
-      const rewardsInfo = rewardsInfoResult.result;
       const ethUsdPrice = await this.priceFeedService.getEthUsdPrice();
       positions.positions.pools.push({
         name: pool.name,

@@ -204,10 +204,12 @@ export class PositionsService {
   async getAllPositions(
     address: Address,
     protocol?: Protocol,
+    chain?: Chain,
   ): Promise<PositionsResponseDto> {
     // Get positions for each supported chain
+    const chainsToQuery = chain ? [chain] : SUPPORTED_CHAINS;
     const chainResults = await Promise.all(
-      SUPPORTED_CHAINS.map((chain) =>
+      chainsToQuery.map((chain) =>
         this.getChainPositions(address, chain, protocol),
       ),
     );

@@ -13,10 +13,7 @@ import { Address } from 'viem';
 import { PositionsService } from './positions.service';
 
 // DTOs and types
-import {
-  PositionsResponseDto,
-  ChainPositionsDto,
-} from '../common/dto/positions.dto';
+import { PositionsResponseDto } from '../common/dto/positions.dto';
 import { Chain } from '../common/types/chain.type';
 
 // Protocol definitions
@@ -64,35 +61,14 @@ Returns user positions filtered by optional chain and protocol parameters.
     description: 'Returns the user positions information',
     type: PositionsResponseDto,
     schema: {
-      oneOf: [
-        { $ref: '#/components/schemas/ChainPositionsDto' },
-        { $ref: '#/components/schemas/PositionsResponseDto' },
-      ],
+      $ref: '#/components/schemas/PositionsResponseDto',
     },
   })
   async getPositions(
     @Param('address') address: Address,
     @Query('protocol') protocol?: Protocol,
     @Query('chain') chain?: Chain,
-  ): Promise<PositionsResponseDto | ChainPositionsDto> {
-    if (chain) {
-      const chainPositions = await this.positionsService.getChainPositions(
-        address,
-        chain,
-        protocol,
-      );
-      // If no positions found for the chain, return empty response
-      if (!chainPositions) {
-        return {
-          chain,
-          totalValueUsd: 0,
-          totalSupplyUsd: 0,
-          totalBorrowUsd: 0,
-          protocols: [],
-        };
-      }
-      return chainPositions;
-    }
-    return this.positionsService.getAllPositions(address, protocol);
+  ): Promise<PositionsResponseDto> {
+    return this.positionsService.getAllPositions(address, protocol, chain);
   }
 }
