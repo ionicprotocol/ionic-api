@@ -1,6 +1,6 @@
 // External dependencies
 import { Injectable, Logger } from '@nestjs/common';
-import { Address } from 'viem';
+import { Address, formatEther } from 'viem';
 
 // Services
 import { MorphoGraphQLService } from './services/graphql.service';
@@ -138,6 +138,7 @@ export class MorphoService {
             // Collateral asset
             {
               underlyingSymbol: market.collateralAsset.symbol,
+              underlyingDecimals: market.collateralAsset.decimals,
               totalSupply: market.state.collateralAssets,
               totalSupplyUsd: market.state.collateralAssetsUsd,
               totalBorrow: '0', // Collateral can't be borrowed
@@ -153,11 +154,12 @@ export class MorphoService {
                 supplyApr: reward.supplyApr,
                 borrowApr: '0',
               })),
-              ltv: market.lltv,
+              ltv: formatEther(BigInt(market.lltv)),
             },
             // Borrow asset
             {
               underlyingSymbol: market.loanAsset.symbol,
+              underlyingDecimals: market.loanAsset.decimals,
               totalSupply: market.state.supplyAssets,
               totalSupplyUsd: market.state.supplyAssetsUsd,
               totalBorrow: market.state.borrowAssets,

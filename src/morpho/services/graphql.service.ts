@@ -103,11 +103,13 @@ export class MorphoGraphQLService {
               address
               symbol
               priceUsd
+              decimals
             }
             loanAsset {
               address
               symbol
               priceUsd
+              decimals
             }
             lltv
             state {
@@ -125,6 +127,7 @@ export class MorphoGraphQLService {
                   address
                   symbol
                   priceUsd
+                  decimals
                 }
                 supplyApr
                 borrowApr

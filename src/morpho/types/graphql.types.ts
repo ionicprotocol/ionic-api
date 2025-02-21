@@ -68,11 +68,13 @@ export interface MarketQueryItem {
     address: string;
     symbol: string;
     priceUsd: string;
+    decimals: number;
   };
   loanAsset: {
     address: string;
     symbol: string;
     priceUsd: string;
+    decimals: number;
   };
   lltv: string;
   state: {
@@ -92,6 +94,7 @@ export interface MarketQueryItem {
         address: string;
         symbol: string;
         priceUsd: string;
+        decimals: number;
       };
       supplyApr: string;
       borrowApr: string;
