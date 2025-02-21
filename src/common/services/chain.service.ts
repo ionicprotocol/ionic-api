@@ -39,4 +39,8 @@ export class ChainService {
     const customRpcUrl = this.configService.get<string>(envKey);
     return customRpcUrl;
   }
+
+  getClient(chain: Chain): PublicClient {
+    return this.getPublicClient(chain);
+  }
 }

@@ -17,7 +17,7 @@ import { PositionsResponseDto } from '../common/dto/positions.dto';
 import { Chain } from '../common/types/chain.type';
 
 // Protocol definitions
-export const PROTOCOLS = ['ionic', 'morpho'] as const;
+export const PROTOCOLS = ['ionic', 'morpho', 'aave'] as const;
 export type Protocol = (typeof PROTOCOLS)[number];
 
 @ApiTags('positions')
