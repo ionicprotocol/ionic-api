@@ -1,33 +1,3 @@
-// export const CHAINLINK_PRICE_FEEDS = {
-//   base: {
-//     WETH: '0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70',
-//     cbETH: '0xd7818272B9e248357d13057AAb0B417aF31E817d',
-//     USDbC: '0x7e860098F58bBFC8648a4311b374B1D669a2bc6B',
-//     wstETH: '0xB88BAc61a4Ca37C43a3725912B1f472c9A5bc061',
-//     USDC: '0x7e860098F58bBFC8648a4311b374B1D669a2bc6B',
-//     weETH: '0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70',
-//     cbBTC: '0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D',
-//     GHO: '0x7e860098F58bBFC8648a4311b374B1D669a2bc6B',
-//     ezETH: '0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70'
-//   }
-// } as const;
-
-// export const CHAINLINK_FEED_ABI = [
-//   {
-//     inputs: [],
-//     name: 'latestRoundData',
-//     outputs: [
-//       { name: 'roundId', type: 'uint80' },
-//       { name: 'answer', type: 'int256' },
-//       { name: 'startedAt', type: 'uint256' },
-//       { name: 'updatedAt', type: 'uint256' },
-//       { name: 'answeredInRound', type: 'uint80' }
-//     ],
-//     stateMutability: 'view',
-//     type: 'function'
-//   }
-// ];
-
 export const PRICE_FEED_DECIMALS = {
   base: {
     WETH: 8,

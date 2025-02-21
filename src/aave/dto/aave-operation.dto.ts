@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNumber } from 'class-validator';
-import { BaseRequestDto } from '../../common/dto/base-request.dto.js';
+import { BaseRequestDto } from '../../common/dto/base-request.dto';
 
 export class AaveOperationCallDataDto {
   @ApiProperty({
@@ -25,11 +25,10 @@ export class AaveOperationCallDataDto {
   on_behalf_of: string;
 }
 
-export class AaveOperationParams {
+export interface AaveOperationParams {
   tokenAddress: `0x${string}`;
   amount: bigint;
   userAddress: `0x${string}`;
-  onBehalfOf?: `0x${string}`;
 }
 
 export class AaveOperationDto extends BaseRequestDto {

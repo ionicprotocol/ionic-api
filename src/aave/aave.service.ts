@@ -8,7 +8,9 @@ import { DEXSCREENER_PAIRS } from './constants/price-feeds';
 import { encodeFunctionData } from 'viem';
 import axios from 'axios';
 import { ATOKEN_ABI, DEBT_TOKEN_ABI, ERC20_ABI, ERC20_APPROVE_ABI } from '../aave/constants/abi';
-// import { TokenService } from './services/token.service';
+import { TokenService } from './services/token.service';
+import { PublicClient, Address } from 'viem';
+import { PriceService } from '../common/services/price.service';
 const AAVE_V3_ADDRESSES = {
   base: {
     POOL: '0xA238Dd80C259a72e81d7e4664a9801593F98d1c5',
@@ -52,17 +54,17 @@ interface ReserveData {
 
 
 // Add token decimals mapping
-const TOKEN_DECIMALS = {
-  USDC: 6,
-  USDbC: 6,
-  WETH: 18,
-  cbETH: 18,
-  wstETH: 18,
-  weETH: 18,
-  cbBTC: 8,
-  GHO: 18,
-  ezETH: 18
-} as const;
+// const TOKEN_DECIMALS = {
+//   USDC: 6,
+//   USDbC: 6,
+//   WETH: 18,
+//   cbETH: 18,
+//   wstETH: 18,
+//   weETH: 18,
+//   cbBTC: 8,
+//   GHO: 18,
+//   ezETH: 18
+// } as const;
 
 // Add price feed decimals mapping
 const PRICE_FEED_DECIMALS = {
@@ -161,15 +163,21 @@ interface DexScreenerTokenResponse {
 export class AaveService {
   private readonly logger = new Logger(AaveService.name);
   private readonly chainService: ChainService;
+  private readonly tokenService: TokenService;
+  private readonly priceService: PriceService;
 
   // Add cache for token decimals to avoid repeated calls
   private tokenDecimalsCache: Record<string, number> = {};
 
   constructor(
     private readonly supabaseService: SupabaseService,
+    tokenService: TokenService,
+    priceService: PriceService,
     chainService: ChainService
   ) {
     this.chainService = chainService;
+    this.tokenService = tokenService;
+    this.priceService = priceService;
   }
 
   // Add retry helper at the top of the class
@@ -219,29 +227,8 @@ export class AaveService {
   }
 
   // Update getTokenDecimals method
-  private async getTokenDecimals(client: any, tokenAddress: string, symbol: string): Promise<number> {
-    const cacheKey = `${tokenAddress}-${symbol}`;
-    if (this.tokenDecimalsCache[cacheKey]) {
-      return this.tokenDecimalsCache[cacheKey];
-    }
-
-    try {
-      const decimals = await this.retryWithDelay(async () => {
-        return await client.readContract({
-          address: tokenAddress,
-          abi: ERC20_ABI,
-          functionName: 'decimals'
-        }) as number;
-      });
-
-      this.tokenDecimalsCache[cacheKey] = decimals;
-      return decimals;
-    } catch (error) {
-      // Fallback to known decimals mapping
-      const fallbackDecimals = TOKEN_DECIMALS[symbol as keyof typeof TOKEN_DECIMALS] || 18;
-      this.tokenDecimalsCache[cacheKey] = fallbackDecimals;
-      return fallbackDecimals;
-    }
+  private async getTokenDecimals(client: PublicClient, tokenAddress: Address): Promise<number> {
+    return this.tokenService.getDecimals(client, tokenAddress);
   }
 
   // Update the USD calculation in getMarketInfo method:
@@ -253,37 +240,6 @@ export class AaveService {
     } catch (error) {
       this.logger.error(`Error calculating USD value: ${error.message}`);
       return '0.00';
-    }
-  }
-
-  // Add helper method to get price from DEXScreener with fallbacks
-  private async getDexScreenerPrice(chain: Chain, symbol: string): Promise<bigint> {
-    try {
-      const tokenAddress = DEXSCREENER_PAIRS[chain]?.[symbol];
-      if (!tokenAddress) {
-        throw new Error(`No token address for ${symbol}`);
-      }
-
-      const response = await axios.get<DexScreenerTokenResponse>(
-        `https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`
-      );
-      
-      const pairs = response.data.pairs;
-      if (!pairs?.length) {
-        throw new Error('No pairs found');
-      }
-
-      if (pairs[0]?.priceUsd) {
-        const price = pairs[0].priceUsd;
-        this.logger.debug(`Got ${symbol} price: ${price} USD from DEXScreener`);
-        // Convert price to 8 decimal places for consistency
-        return BigInt(Math.round(Number(price) * 1e8));
-      }
-
-      throw new Error('No price data returned');
-    } catch (error) {
-      this.logger.error(`Error fetching ${symbol} price: ${error.message}`);
-      return 0n;
     }
   }
 
@@ -349,13 +305,16 @@ export class AaveService {
           const borrowApy = this.calculateApy(reserveData[4]);
 
           // Replace Chainlink price fetching with DEXScreener
-          const priceUsd = await this.getDexScreenerPrice(chain, reserve.symbol);
+          const priceUsd = await this.priceService.getDexScreenerPrice(
+            chain, 
+            reserve.symbol,
+            DEXSCREENER_PAIRS[chain]?.[reserve.symbol]
+          );
 
           // In getMarketInfo method, update the USD calculations:
           const tokenDecimals = await this.getTokenDecimals(
             client, 
-            reserve.tokenAddress,
-            reserve.symbol
+            reserve.tokenAddress
           );
           const priceFeedDecimals = PRICE_FEED_DECIMALS[chain]?.[reserve.symbol] || 8;
 
@@ -473,8 +432,12 @@ export class AaveService {
           if (supplyBalance === 0n && borrowBalance === 0n) return null;
 
           // Get price and calculate USD values
-          const priceUsd = await this.getDexScreenerPrice(chain, reserve.symbol);
-          const tokenDecimals = await this.getTokenDecimals(client, reserve.tokenAddress, reserve.symbol);
+          const priceUsd = await this.priceService.getDexScreenerPrice(
+            chain, 
+            reserve.symbol,
+            DEXSCREENER_PAIRS[chain]?.[reserve.symbol]
+          );
+          const tokenDecimals = await this.getTokenDecimals(client, reserve.tokenAddress);
 
           // Calculate USD values directly using the price and balance
           const supplyUsd = (Number(supplyBalance) / 10 ** tokenDecimals) * (Number(priceUsd) / 1e8);
@@ -522,12 +485,15 @@ export class AaveService {
             totalSuppliedUsd,
             totalCollateralUsd,
             totalBorrowUsd,
-            assets: userAssets.map((asset) => ({
-              ...(asset as NonNullable<typeof asset>),
-              supplyBalance: (Number(asset?.supplyBalance) / 10 ** this.tokenDecimalsCache[`${asset?.tokenAddress}-${asset?.symbol}`]).toFixed(6),
-              borrowBalance: (Number(asset?.borrowBalance) / 10 ** this.tokenDecimalsCache[`${asset?.tokenAddress}-${asset?.symbol}`]).toFixed(6),
-              supplyBalanceUsd: Number(asset?.supplyBalanceUsd).toFixed(2),
-              borrowBalanceUsd: Number(asset?.borrowBalanceUsd).toFixed(2)
+            assets: await Promise.all(userAssets.filter((asset): asset is NonNullable<typeof asset> => asset !== null).map(async (asset) => {
+              const decimals = await this.tokenService.getDecimals(client, asset.tokenAddress);
+              return {
+                ...asset,
+                supplyBalance: (Number(BigInt(asset.supplyBalance)) / 10 ** decimals).toFixed(6),
+                borrowBalance: (Number(BigInt(asset.borrowBalance)) / 10 ** decimals).toFixed(6),
+                supplyBalanceUsd: Number(asset.supplyBalanceUsd).toFixed(2),
+                borrowBalanceUsd: Number(asset.borrowBalanceUsd).toFixed(2)
+              };
             }))
           }]
         }
@@ -683,30 +649,63 @@ export class AaveService {
       }
 
       const client = this.chainService.getClient(chain);
-      const encodedData = encodeFunctionData({
-        abi: POOL_REPAY_ABI,
-        functionName: 'repay',
-        args: [params.tokenAddress, params.amount, 2n, params.userAddress] // 2 = variable rate
+
+      // Get reserve data to find debt token addresses
+      const debtTokenAddress = await client.readContract({
+        address: addresses.POOL,
+        abi: POOL_ABI,
+        functionName: 'getReserveData',
+        args: [params.tokenAddress]
+      }) as ReserveData;
+
+      const variableDebtToken = debtTokenAddress[10] as unknown as Address;
+      const stableDebtToken = debtTokenAddress[9] as unknown as Address;
+
+      // Check both debt balances
+      const variableDebt = await client.readContract({
+        address: variableDebtToken,
+        abi: DEBT_TOKEN_ABI,
+        functionName: 'balanceOf',
+        args: [params.userAddress]
+      }) as bigint;
+
+      const stableDebt = await client.readContract({
+        address: stableDebtToken,
+        abi: DEBT_TOKEN_ABI,
+        functionName: 'balanceOf',
+        args: [params.userAddress]
+      }) as bigint;
+
+      // Determine interest rate mode based on which debt exists
+      const interestRateMode = stableDebt > 0n ? 1n : 2n;
+      if (stableDebt === 0n && variableDebt === 0n) {
+        throw new Error('No debt found');
+      }
+
+      // First create approval transaction
+      const approvalData = encodeFunctionData({
+        abi: ERC20_APPROVE_ABI,
+        functionName: 'approve',
+        args: [addresses.POOL, params.amount]
       });
 
-      const chainId = chain === 'base' ? 8453 : 10;
-      const gasEstimate = await client.estimateGas({
-        account: params.userAddress,
-        to: addresses.POOL,
-        data: encodedData,
-        value: 0n
-      });
-
+      // Return approval tx first
       return {
-        chainId,
+        chainId: chain === 'base' ? 8453 : 10,
         from: params.userAddress,
-        to: addresses.POOL,
-        data: encodedData,
+        to: params.tokenAddress,
+        data: approvalData,
         value: 0n,
         nonce: await client.getTransactionCount({ address: params.userAddress }),
-        maxFeePerGas: gasEstimate,
+        maxFeePerGas: await client.estimateGas({
+          account: params.userAddress,
+          to: params.tokenAddress,
+          data: approvalData,
+          value: 0n
+        }),
         maxPriorityFeePerGas: (await client.estimateFeesPerGas()).maxPriorityFeePerGas
       };
+
     } catch (error) {
       this.logger.error(`Error preparing repay tx: ${error.message}`);
       throw error;

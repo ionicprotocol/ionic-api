@@ -1,15 +1,15 @@
-export const TOKEN_DECIMALS = {
-  ETH: 18,
-  WETH: 18,
-  USDC: 6,
-  USDbC: 6,
-  cbETH: 18,
-  wstETH: 18,
-  weETH: 18,
-  cbBTC: 8,
-  GHO: 18,
-  ezETH: 18
-} as const;
+// export const TOKEN_DECIMALS = {
+//   ETH: 18,
+//   WETH: 18,
+//   USDC: 6,
+//   USDbC: 6,
+//   cbETH: 18,
+//   wstETH: 18,
+//   weETH: 18,
+//   cbBTC: 8,
+//   GHO: 18,
+//   ezETH: 18
+// } as const;
 
 export const TOKEN_ADDRESSES = {
   base: {
